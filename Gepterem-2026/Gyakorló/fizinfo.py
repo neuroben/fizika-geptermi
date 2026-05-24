@@ -1535,6 +1535,31 @@ class num_kinem:
     def acc(self, value: np.ndarray):
         self._acc=value
 
+    def full_kinem_calc(self):
+        """Teljes kinematikai számítássorozat.
+
+        Fizikai jelentés:
+            A megadott hely- vagy sebességadatokból kiszámítja az összes
+            kinematikai mennyiséget: sebességet, gyorsulást, megtett utat,
+            elmozdulásvektorokat, valamint a tangenciális és centripetális
+            gyorsuláskomponenseket és a görbületi sugár reciprokát.
+
+        Paraméterek:
+            Nincsenek közvetlen paraméterei. Az objektum meglévő `t` és `r`
+            attribútumait használja.
+
+        Visszatérési érték:
+            Nincs külön visszatérési érték. Beállítja a `v`, `a`,
+            `delta_r`, `delta_r_abs`, `pathlength`, `a_t`, `a_t_abs`,
+            `a_cp`, `a_cp_abs` és `Rinv` attribútumokat.
+        """
+        self.calc_r_to_v()
+        self.calc_v_to_a()
+        self.calc_delta_r()
+        self.calc_delta_r_abs()
+        self.calc_pathlength()
+        self.calc_at_acp_Rinv()
+
 
 # ## Dinamikai class: ez az új elem ezen a gyakorlaton
 
