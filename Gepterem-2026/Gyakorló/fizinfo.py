@@ -603,6 +603,31 @@ class num_kinem:
             fig.savefig(figname)
             
     #######
+    def clip_below_y(self, y_min=0.0):
+        """Levágja azokat az időlépéseket, ahol a test a megadott magasság alá kerül.
+        
+        MIKOR HASZNÁLD:
+            Ha stop_cond-ot használsz talajra érés detektálására (pl. r[1] <= 0),
+            a full_dinam_calc egy lépéssel túlmegy a talajon mielőtt megáll.
+            Ez azt jelenti hogy az utolsó pontban y < 0, ott a rugóerő/talajmodell
+            aktiválódik, és irreálisan nagy gyorsuláscsúcs jelenik meg a grafikonon.
+            
+            Hívd meg full_dinam_calc() után, mielőtt bármit ábrázolsz:
+                ball_din.full_dinam_calc()
+                ball_din.clip_below_y()        # ← ezt
+                ball_din.plot_rva_coord()      # most már tiszta lesz
+        
+        Paraméterek:
+            y_min: Az a magasság [m] ami alá nem engedünk pontot. Default: 0.0 (talaj).
+        """
+        maszk = self.r[:, 1] >= y_min
+        self.t = self.t[maszk]
+        self.r = self.r[maszk]
+        self.v = self.v[maszk]
+        self.a = self.a[maszk]
+        if hasattr(self, '_m'):
+            self.m = self.m[maszk]
+
     def plot_rcomp(self,figsize=(10,10),coords=[[0,1]],equal=True,figname=""):
         """Helykoordináták közül a kiválasztott párok ábrázolása.
 
@@ -1271,13 +1296,26 @@ class num_kinem:
         """A tangenciális gyorsulás előjeles nagysága.
 
         Fizikai jelentés:
-            A gyorsulás sebesség irányába eső komponense. Pozitív értéke
-            gyorsuló, negatív értéke lassuló mozgást jelez a pillanatnyi pálya
-            mentén.
+            A gyorsulás sebesség irányába eső skalár komponense, vagyis
+            megmutatja, hogy a test a pálya mentén gyorsul-e vagy lassul-e.
+
+            Értelmezés:
+                - a_t_abs > 0: a tangenciális gyorsulás a sebességgel egyező
+                irányba mutat → a sebesség nagysága nő (gyorsul)
+                - a_t_abs < 0: a tangenciális gyorsulás a sebességgel ellentétes
+                irányba mutat → a sebesség nagysága csökken (lassul)
+                - a_t_abs = 0: nincs tangenciális gyorsulás → a sebesség
+                nagysága pillanatnyi nem változik
+
+            Kapcsolat más attribútumokkal:
+                - a_t_abs = dot(a, e_v), ahol e_v a sebesség irányú egységvektor
+                - a_t = a_t_abs * e_v  (a tangenciális gyorsulásvektor)
+                - a_t_magnitude = |a_t_abs|  (előjel nélküli nagysága)
 
         Visszatérési érték:
-            Egy dimenziós NumPy-tömb a tangenciális gyorsulás előjeles
-            nagyságával.
+            Egy dimenziós NumPy-tömb, shape: (N,), ahol N az időpontok száma.
+            Az i. eleme az i. időponthoz tartozó tangenciális gyorsulás
+            előjeles nagysága [m/s²].
         """
         return self._a_t_abs
 
@@ -1294,8 +1332,21 @@ class num_kinem:
             mutat. Ez változtatja meg a sebesség nagyságát.
 
         Visszatérési érték:
-            Kétdimenziós NumPy-tömb, soronként a tangenciális
-            gyorsulásvektorral.
+            Kétdimenziós NumPy-tömb, shape: (N, Ndim), ahol N az időpontok
+            száma, Ndim a mozgás dimenziószáma.
+
+            Struktúra (2D mozgás esetén):
+                a_t = [[a_tx0, a_ty0],   ← 0. időpont tangenciális gyorsulásvektora
+                    [a_tx1, a_ty1],   ← 1. időpont tangenciális gyorsulásvektora
+                    ...
+                    [a_txN, a_tyN]]   ← N. időpont tangenciális gyorsulásvektora
+
+            A vektor mindig párhuzamos a pillanatnyi sebességvektorral:
+                - ha a_t_abs > 0: a_t a sebességgel egyező irányba mutat (gyorsul)
+                - ha a_t_abs < 0: a_t a sebességgel ellentétes irányba mutat (lassul)
+                - ha a_t_abs = 0: nincs tangenciális gyorsulás (állandó sebességnagyság)
+
+            Az előjeles nagysága az a_t_abs attribútumban érhető el skalárként.
         """
         return self._a_t
 
