@@ -940,6 +940,88 @@ class num_kinem:
 
     def kinetic_energy(self, tomeg, keresett_t=None):
         """
+        Megadja a test mozgási energiáját, állandó és változó tömeg esetén is.
+
+        Fizikai jelentés:
+            A mozgási energia képlete:
+
+                E_k = 1/2 * m * v^2
+
+            ahol:
+                m = test tömege [kg] (lehet fix szám, vagy időben változó tömb)
+                v = sebesség nagysága [m/s]
+
+        Paraméterek:
+            tomeg:
+                A test tömege [kg]. Lehet egyetlen lebegőpontos szám (állandó tömeg),
+                vagy egy NumPy-tömb (változó tömeg, pl. self.m).
+
+            keresett_t:
+                Opcionális konkrét időpillanat [s].
+
+                Fontos:
+                    Nem kell megadni a teljes időtömböt, például self.t-t.
+                    Ha keresett_t nincs megadva (None), akkor a függvény
+                    automatikusan kiszámítja a mozgási energiát az összes szimulált
+                    időpontra.
+
+                Példák:
+                    kinetic_energy(0.0075)
+                        -> mozgási energia végig fix 0.0075 kg tömeggel
+
+                    kinetic_energy(bullet_din.m)
+                        -> mozgási energia lépésről lépésre változó tömeggel
+
+                    kinetic_energy(bullet_din.m, keresett_t=0.83)
+                        -> mozgási energia a 0.83 s időpillanatban (tömeget is interpolál)
+
+        Visszatérési érték:
+            Ha keresett_t nincs megadva:
+                NumPy-tömb, amely az összes szimulált időponthoz tartozó
+                mozgási energiát tartalmazza [J].
+
+            Ha keresett_t meg van adva:
+                Egyetlen lebegőpontos érték, az adott időpillanathoz tartozó
+                mozgási energia [J].
+        """
+
+        # Biztosítjuk, hogy a tömeg NumPy tömbként viselkedjen a vizsgálatokhoz
+        tomeg_arr = np.asarray(tomeg)
+
+        # 1. Érvényesség ellenőrzése: egyetlen tömegelem sem lehet <= 0
+        if np.any(tomeg_arr <= 0):
+            raise ValueError("A tömegnek pozitívnak kell lennie minden időpillanatban.")
+
+        if not hasattr(self, "v_abs"):
+            raise ValueError("A mozgási energia számításához szükséges a v_abs sebességnagyság.")
+
+        # Tömb esetén ellenőrizzük a hosszt
+        if tomeg_arr.ndim > 0 and len(tomeg_arr) != len(self.t):
+             raise ValueError("Változó tömeg esetén a 'tomeg' tömb hosszának meg kell egyeznie a szimulációs lépések számával.")
+
+        # 2. Ha nincs konkrét időpont kérve (teljes pálya számítása)
+        if keresett_t is None:
+            # A NumPy automatikusan jól szoroz, akár skalár, akár tömb a tomeg_arr
+            return 0.5 * tomeg_arr * self.v_abs**2
+
+        # 3. Ha konkrét időpont van kérve
+        if keresett_t < self.t[0] or keresett_t > self.t[-1]:
+            raise ValueError("A keresett időpont kívül esik a szimulált időtartományon.")
+
+        # Interpoláljuk a sebességet a keresett időpontra
+        sebesseg = np.interp(keresett_t, self.t, self.v_abs)
+
+        # Interpoláljuk a tömeget is, ha az időben változik (ha fix szám, marad ugyanaz)
+        if tomeg_arr.ndim > 0:
+            m_pillanatnyi = np.interp(keresett_t, self.t, tomeg_arr)
+        else:
+            m_pillanatnyi = tomeg
+
+        return 0.5 * m_pillanatnyi * sebesseg**2
+
+
+    def kinetic_energy_constant_m(self, tomeg, keresett_t=None):
+        """
         Megadja a test mozgási energiáját.
 
         Fizikai jelentés:
@@ -1695,6 +1777,11 @@ class num_dinam(num_kinem):
         self.r=np.array(self.r_list)
         self.m=np.array(self.m_list)
         self.t=np.array(self.t_list)
+
+        # kinematikai mennyiségek kiszámítása
+        self.calc_delta_r_abs()
+        self.calc_pathlength()
+        self.calc_at_acp_Rinv()
 
     @property
     def stop_cond(self) -> object:
