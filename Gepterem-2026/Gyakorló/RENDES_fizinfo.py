@@ -42,10 +42,14 @@ __all__ = ["deriv", "deriv_nd", "integ", "integ_nd", "vect_abs", "arg_eq",
 
 
 import numpy as np    
-import pandas as pd   # Pandas, csak a CSV olvasás miatt
-from scipy.interpolate import make_smoothing_spline  # simító spline
+import pandas as pd
+from scipy.interpolate import make_smoothing_spline
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+
+try:
+    get_ipython().run_line_magic('matplotlib', 'inline')
+except NameError:
+    pass  # nem Jupyter környezet, nem kell
 
 
 # ## Általános számítási függvények
