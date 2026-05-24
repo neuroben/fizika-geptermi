@@ -34,9 +34,9 @@ Bugreportot a tárgy Moodle lapjának Fórum rovatába várok.
 __version__ = "1.0.0"
 __author__ = "Kovács Bence Áron"
 __all__ = ["deriv", "deriv_nd", "integ", "integ_nd", "vect_abs", "arg_eq",
-          "num_kinem", "num_dinam", 
-          "GPS_Logger_to_xyt", "GPS_to_num_kinem", "num_kinem_smooth_r"]
-
+           "num_kinem", "num_dinam",
+           "GPS_Logger_to_xyt", "GPS_to_num_kinem", "num_kinem_smooth_r",
+           "create_grav_közeg_talaj_F_m","create_rocket_F_m"]
 
 # In[2]:
 
@@ -2193,3 +2193,117 @@ def num_kinem_smooth_r(numkin0, dt_new, lam=None, err_report=False) -> num_kinem
         print(f"Eltérés          : RMS={err_RMS:.3f}; MAX={err_max:.3f}")
     
     return numkinem_new
+
+
+def create_grav_közeg_talaj_F_m(m, C, A, rho, D, F_f, g=9.81):
+    """
+    Visszaadja egy labda erő- és tömegfüggvényét gravitáció,
+    közegellenállás és rugalmas talajtól való visszapattanás figyelembevételével.
+
+    Paraméterek:
+        m    : labda tömege [kg]
+        C    : közegellenállási együttható (C_D)
+        A    : labda homlokfelülete [m²]
+        rho  : közeg sűrűsége [kg/m³]
+        D    : rugalmas talajmodell merevségi együtthatója [N/m]
+              (talaj-reakcióerő: F_talaj = D * behatolás, ha y <= 0)
+        F_f  : súrlódási erő nagysága a talajon [N]
+              (vízszintes irányban lassít, ha a labda érinti a talajt)
+        g    : gravitációs gyorsulás [m/s²]
+    """
+
+    def tomeg_fuggveny(t):
+        # A labda tömege állandó (nincs tömegváltozás)
+        return m
+
+    def ero_fuggveny(t, helyzet, sebesseg, tomeg):
+        """
+        Az összes erő eredője [N], 2D vektorként (x, y).
+
+        Hatások:
+          - gravitáció         : lefelé (y irány)
+          - közegellenállás    : sebességgel ellentétes, v²-tel arányos
+          - talaj reakcióerő   : felfelé, ha y <= 0 (rugalmas behatolás)
+          - talaj súrlódás     : vízszintes irányban, ha y <= 0
+        """
+
+        eredo_ero = np.array([0.0, 0.0], dtype=np.float64)
+
+        # --- Gravitációs erő ---
+        eredo_ero[1] -= tomeg * g                          # F_g = -m·g (y irányban lefelé)
+
+        # --- Közegellenállási erő ---
+        sebesseg_nagysag = np.sqrt((sebesseg ** 2).sum())  # |v| [m/s]
+        if sebesseg_nagysag > 1e-10:
+            eredo_ero -= 0.5 * C * A * rho \
+                         * sebesseg * sebesseg_nagysag     # F_drag = ½·C·A·ρ·v·|v|, iránya: -v̂
+
+        # --- Talaj reakcióerő (rugalmas ütközésmodell) ---
+        y = helyzet[1]
+        vy = sebesseg[1]
+        if y <= 0.0:                        # labda elérte / átment a talajon
+            behatolas = -y                  # behatolás mélysége [m] (pozitív)
+            eredo_ero[1] += D * behatolas   # F_talaj = D · δ (felfelé)
+
+            # Talaj súrlódás: csak ha a labda érinti a talajt és mozog vízszintesen
+            vx = sebesseg[0]
+            if abs(vx) > 1e-10:
+                eredo_ero[0] -= F_f * np.sign(vx)    # F_súrl = -F_f · sign(vx)
+
+        return eredo_ero
+
+    return ero_fuggveny, tomeg_fuggveny
+
+
+def create_rocket_F_m(C, A, rho, szaraz_tomeg, hajtoanyag_tomeg, kiaramlasi_seb,
+                          tomegaram, g=9.81):
+    """
+    Visszaadja a rakéta erő- és tömegfüggvényét.
+
+    Paraméterek:
+        C                  : közegellenállási együttható (C_D)
+        A                  : rakéta homlokfelülete [m²]
+        rho                : levegő sűrűsége [kg/m³]
+        szaraz_tomeg       : rakéta tömege hajtóanyag nélkül [kg]
+        hajtoanyag_tomeg   : kezdeti hajtóanyag tömege [kg]
+        kiaramlasi_seb     : hajtóanyag kilépési sebessége (hatásos) [m/s]
+        tomegaram          : hajtóanyag fogyasztás [kg/s]
+        g                  : gravitációs gyorsulás [m/s²]
+    """
+
+    def tomeg_fuggveny(t):
+        # Teljes rakétatömeg az idő függvényében:
+        # lineárisan csökken (szaraz_tomeg + hajtoanyag_tomeg)-ről,
+        # de szaraz_tomeg alá nem mehet (ha elfogyott a hajtóanyag)
+        return np.maximum(szaraz_tomeg,
+                          szaraz_tomeg + hajtoanyag_tomeg - tomegaram * t)
+
+    def ero_fuggveny(t, helyzet, sebesseg, tomeg):
+        """
+        Az összes erő eredője [N], 2D vektorként (x, y).
+
+        Hatások:
+          - gravitáció (lefelé, y irányban)
+          - közegellenállás (sebességgel ellentétes irányban, v²-tel arányos)
+          - tolóerő (sebességgel megegyező irányban, amíg van hajtóanyag)
+        """
+
+        # --- Gravitációs erő ---
+        eredo_ero = np.array([0.0, -tomeg * g], np.float64)  # [Fx, Fy], csak y irányú
+
+        # --- Közegellenállási erő ---
+        sebesseg_nagysag = ((sebesseg ** 2).sum()) ** 0.5          # sebesség abszolút értéke [m/s]
+        eredo_ero -= 0.5 * C * A * rho \
+                     * sebesseg * sebesseg_nagysag                 # F_légellenállás = ½·C·A·ρ·v·|v|
+
+        # --- Tolóerő ---
+        toloeroe_nagyság = tomegaram * kiaramlasi_seb              # F_t = ṁ · v_kilépő [N]
+        hajtasi_ido = hajtoanyag_tomeg / tomegaram                  # meddig ég a hajtóanyag [s]
+
+        if t <= hajtasi_ido:                                       # még van hajtóanyag
+            eredo_ero += toloeroe_nagyság * sebesseg / np.maximum(sebesseg_nagysag, 1e-10)
+            # irány: normált sebességvektor (1e-10 védi a nullával való osztástól)
+
+        return eredo_ero
+
+    return ero_fuggveny, tomeg_fuggveny
