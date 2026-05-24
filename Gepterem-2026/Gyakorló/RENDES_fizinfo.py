@@ -10,7 +10,7 @@
 # 
 # vagy
 # 
-# `from fizinfo import *`
+# `from RENDES_fizinfo import *`
 # 
 # módon. Ez egyszerűsíti a vizsgafeladatok szerkesztését.
 # 
@@ -26,13 +26,13 @@ Célja megkönnyíteni a vizsgán a programok szerkesztését, mert ennek segít
 egy `import fizinfo` parancs után `fizinfo`. előtaggal használhatók a tanult eljárások,
 anélkül, hogy be kellene azokat szerkeszteni a fájlba.
 
-Alternatíva: `from fizinfo import *`.
+Alternatíva: `from RENDES_fizinfo import *`.
 
 Bugreportot a tárgy Moodle lapjának Fórum rovatába várok.
 """
 
-__version__ = "0.5"
-__author__ = "Dr. Horváth András"
+__version__ = "1.0.0"
+__author__ = "Kovács Bence Áron"
 __all__ = ["deriv", "deriv_nd", "integ", "integ_nd", "vect_abs", "arg_eq",
           "num_kinem", "num_dinam", 
           "GPS_Logger_to_xyt", "GPS_to_num_kinem", "num_kinem_smooth_r"]
@@ -2189,6 +2189,3 @@ def num_kinem_smooth_r(numkin0, dt_new, lam=None, err_report=False) -> num_kinem
         print(f"Eltérés          : RMS={err_RMS:.3f}; MAX={err_max:.3f}")
     
     return numkinem_new
-
-
-# In[ ]:

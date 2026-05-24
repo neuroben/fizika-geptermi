@@ -10,7 +10,7 @@
 # 
 # vagy
 # 
-# `from fizinfo import *`
+# `from RENDES_fizinfo import *`
 # 
 # módon. Ez egyszerűsíti a vizsgafeladatok szerkesztését.
 # 
@@ -26,7 +26,7 @@ Célja megkönnyíteni a vizsgán a programok szerkesztését, mert ennek segít
 egy `import fizinfo` parancs után `fizinfo`. előtaggal használhatók a tanult eljárások,
 anélkül, hogy be kellene azokat szerkeszteni a fájlba.
 
-Alternatíva: `from fizinfo import *`.
+Alternatíva: `from RENDES_fizinfo import *`.
 
 Bugreportot a tárgy Moodle lapjának Fórum rovatába várok.
 """
