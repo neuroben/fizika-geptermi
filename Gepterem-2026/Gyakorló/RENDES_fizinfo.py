@@ -942,6 +942,200 @@ class num_kinem:
 
         return ranges
 
+    def momentum(self, tomeg=None, keresett_t=None, magnitude=True):
+        """
+        Megadja a test lendületét.
+
+        Fizikai jelentés:
+            A lendület képlete:
+
+                p = m * v
+
+            ahol:
+                m = test tömege [kg]
+                v = sebességvektor [m/s]
+
+            Ha magnitude=True, akkor a lendület nagyságát adja vissza:
+
+                |p| = m * |v|
+
+            Ha magnitude=False, akkor a teljes lendületvektort adja vissza:
+
+                p = m * v
+
+        Paraméterek:
+            tomeg:
+                A test tömege [kg].
+
+                Ha nincs megadva, a metódus megpróbálja az objektum saját
+                self.m attribútumát használni.
+
+                Ezért dinamikai objektumnál, például rakétánál elég:
+
+                    rocket_din.momentum()
+
+                Ha az objektumnak nincs self.m attribútuma, például tisztán
+                kinematikai GPS-adat esetén, akkor külön meg kell adni:
+
+                    auto.momentum(1500)
+
+            keresett_t:
+                Opcionális konkrét időpillanat [s].
+                Ha nincs megadva, a teljes időtartományra számol.
+
+            magnitude:
+                True esetén a lendület nagyságát adja vissza.
+                False esetén a lendületvektort adja vissza.
+
+        Visszatérési érték:
+            Ha keresett_t nincs megadva:
+                magnitude=True  -> |p(t)| tömb [kg*m/s]
+                magnitude=False -> p(t) vektortömb [kg*m/s]
+
+            Ha keresett_t meg van adva:
+                magnitude=True  -> egyetlen szám [kg*m/s]
+                magnitude=False -> egy vektor [kg*m/s]
+        """
+
+        if tomeg is None:
+            if hasattr(self, "m"):
+                tomeg = self.m
+            else:
+                raise ValueError("Ehhez az objektumhoz nincs eltárolt tömeg. Add meg külön: momentum(tomeg).")
+
+        tomeg_arr = np.asarray(tomeg)
+
+        if np.any(tomeg_arr <= 0):
+            raise ValueError("A tömegnek pozitívnak kell lennie.")
+
+        if not hasattr(self, "_v"):
+            raise ValueError("A lendület számításához szükséges a v sebességvektor.")
+
+        if tomeg_arr.ndim > 0 and len(tomeg_arr) != len(self.t):
+            raise ValueError("Változó tömeg esetén a tömegtömb hosszának meg kell egyeznie az időpontok számával.")
+
+        if keresett_t is None:
+            if magnitude:
+                return tomeg_arr * self.v_abs
+
+            if tomeg_arr.ndim > 0:
+                return tomeg_arr[:, None] * self.v
+
+            return tomeg_arr * self.v
+
+        if keresett_t < self.t[0] or keresett_t > self.t[-1]:
+            raise ValueError("A keresett időpont kívül esik a szimulált időtartományon.")
+
+        if tomeg_arr.ndim > 0:
+            m_pillanatnyi = np.interp(keresett_t, self.t, tomeg_arr)
+        else:
+            m_pillanatnyi = tomeg
+
+        if magnitude:
+            sebesseg = np.interp(keresett_t, self.t, self.v_abs)
+            return m_pillanatnyi * sebesseg
+
+        v_pillanatnyi = np.array([
+            np.interp(keresett_t, self.t, self.v[:, i])
+            for i in range(self.Ndim)
+        ])
+
+        return m_pillanatnyi * v_pillanatnyi
+
+    def driving_power(self, tomeg, keresett_t=None, only_positive=True):
+        """
+        Megadja a mozgásirányú gyorsításra fordított pillanatnyi teljesítményt.
+
+        Fizikai jelentés:
+            A pillanatnyi teljesítmény:
+
+                P = F_t * v
+
+            ahol a mozgásirányú erő:
+
+                F_t = m * a_t
+
+            Ezért:
+
+                P = m * a_t * v
+
+            Itt:
+                m = test tömege [kg]
+                a_t = előjeles tangenciális gyorsulás [m/s²]
+                v = sebesség nagysága [m/s]
+
+            Ha a_t > 0:
+                a test gyorsul, P pozitív.
+
+            Ha a_t < 0:
+                a test fékez, P negatív lenne.
+
+            Ha only_positive=True, akkor csak a gyorsításra fordított pozitív
+            teljesítményt tartjuk meg, fékezésnél az érték 0 lesz.
+
+        Paraméterek:
+            tomeg:
+                A test tömege [kg].
+                Lehet egyetlen szám, például 1500,
+                vagy időben változó NumPy-tömb, például raketa.m.
+
+            keresett_t:
+                Opcionális konkrét időpillanat [s].
+                Ha nincs megadva, a teljes időtartományra számol.
+
+            only_positive:
+                True esetén fékezésnél és nulla tangenciális gyorsulásnál P = 0.
+                False esetén az előjeles teljesítményt adja vissza.
+
+        Visszatérési érték:
+            Ha keresett_t nincs megadva:
+                NumPy-tömb, amely az összes időponthoz tartozó teljesítményt tartalmazza [W].
+
+            Ha keresett_t meg van adva:
+                Egyetlen lebegőpontos érték, az adott időpillanathoz tartozó teljesítmény [W].
+        """
+
+        tomeg_arr = np.asarray(tomeg)
+
+        if np.any(tomeg_arr <= 0):
+            raise ValueError("A tömegnek pozitívnak kell lennie minden időpillanatban.")
+
+        if not hasattr(self, "a_t_abs"):
+            raise ValueError("A teljesítmény számításához szükséges az a_t_abs előjeles tangenciális gyorsulás.")
+
+        if not hasattr(self, "v_abs"):
+            raise ValueError("A teljesítmény számításához szükséges a v_abs sebességnagyság.")
+
+        if tomeg_arr.ndim > 0 and len(tomeg_arr) != len(self.t):
+            raise ValueError("Változó tömeg esetén a 'tomeg' tömb hosszának meg kell egyeznie az időpontok számával.")
+
+        if keresett_t is None:
+            teljesitmeny = tomeg_arr * self.a_t_abs * self.v_abs
+
+            if only_positive:
+                teljesitmeny = teljesitmeny.copy()
+                teljesitmeny[self.a_t_abs <= 0] = 0
+
+            return teljesitmeny
+
+        if keresett_t < self.t[0] or keresett_t > self.t[-1]:
+            raise ValueError("A keresett időpont kívül esik a szimulált időtartományon.")
+
+        if tomeg_arr.ndim > 0:
+            m_pillanatnyi = np.interp(keresett_t, self.t, tomeg_arr)
+        else:
+            m_pillanatnyi = tomeg
+
+        a_t_pillanatnyi = np.interp(keresett_t, self.t, self.a_t_abs)
+        v_pillanatnyi = np.interp(keresett_t, self.t, self.v_abs)
+
+        teljesitmeny = m_pillanatnyi * a_t_pillanatnyi * v_pillanatnyi
+
+        if only_positive and a_t_pillanatnyi <= 0:
+            return 0.0
+
+        return teljesitmeny
+
     def kinetic_energy(self, tomeg, keresett_t=None):
         """
         Megadja a test mozgási energiáját, állandó és változó tömeg esetén is.

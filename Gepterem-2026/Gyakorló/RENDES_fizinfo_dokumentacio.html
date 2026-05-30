@@ -1,0 +1,3296 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RENDES_fizinfo.py dokumentáció</title>
+  <style>
+    :root {
+      --bg: #f6f2ea;
+      --panel: rgba(255, 252, 248, 0.92);
+      --panel-strong: #fffdfa;
+      --line: #dbcdb9;
+      --text: #1e1f22;
+      --muted: #5f645f;
+      --accent: #0d6b78;
+      --accent-soft: #d9eef1;
+      --accent-2: #a54b2a;
+      --shadow: 0 12px 32px rgba(53, 41, 23, 0.08);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --sans: "Aptos", "Segoe UI", "Trebuchet MS", sans-serif;
+      --mono: "Cascadia Code", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at top left, rgba(13, 107, 120, 0.12), transparent 32%),
+        radial-gradient(circle at top right, rgba(165, 75, 42, 0.10), transparent 28%),
+        linear-gradient(180deg, #fbf8f3 0%, var(--bg) 58%, #f2ede5 100%);
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 24px;
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      padding: 20px;
+      border: 1px solid rgba(219, 205, 185, 0.8);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand {
+      margin-bottom: 18px;
+    }
+
+    .brand h1 {
+      margin: 0 0 8px;
+      font-size: 1.65rem;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.45;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 22px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      border: 1px solid transparent;
+    }
+
+    .badge-default, .badge-method {
+      background: #f0f4f5;
+      color: #134a53;
+      border-color: #d4e2e5;
+    }
+
+    .badge-function {
+      background: #e7f3ee;
+      color: #1f5f44;
+      border-color: #cbe2d6;
+    }
+
+    .badge-property {
+      background: #f7f0da;
+      color: #7a5b00;
+      border-color: #ebdfb0;
+    }
+
+    .badge-class {
+      background: #fbe7df;
+      color: #8a3c1d;
+      border-color: #f2cfbf;
+    }
+
+    .badge-group {
+      background: transparent;
+      color: var(--muted);
+      border-color: var(--line);
+    }
+
+    .search-box {
+      margin-bottom: 18px;
+    }
+
+    .search-box label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      font: inherit;
+      color: var(--text);
+    }
+
+    .search-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .nav-block h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .nav-block a {
+      display: block;
+      padding: 8px 10px;
+      margin: 4px 0;
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+    }
+
+    .nav-block a:hover {
+      background: rgba(13, 107, 120, 0.08);
+    }
+
+    .content {
+      min-width: 0;
+    }
+
+    .hero {
+      padding: 28px;
+      border: 1px solid rgba(219, 205, 185, 0.85);
+      border-radius: 28px;
+      background:
+        linear-gradient(140deg, rgba(255,255,255,0.96), rgba(248,245,239,0.96)),
+        linear-gradient(120deg, rgba(13,107,120,0.10), rgba(165,75,42,0.08));
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero .eyebrow {
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.78rem;
+      margin-bottom: 10px;
+    }
+
+    .hero h2 {
+      margin: 0 0 12px;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      max-width: 78ch;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .section-panel, .class-panel {
+      margin-bottom: 22px;
+      padding: 22px;
+      border: 1px solid rgba(219, 205, 185, 0.88);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .section-header h2, .class-header h3 {
+      margin: 6px 0 10px;
+      font-size: 1.5rem;
+    }
+
+    .section-header p, .class-summary, .class-meta p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .class-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0 8px;
+    }
+
+    .class-meta section {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(219, 205, 185, 0.7);
+    }
+
+    .class-meta h4, .method-group h4 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .method-group {
+      margin-top: 20px;
+    }
+
+    .api-item {
+      margin-top: 14px;
+      border: 1px solid rgba(219, 205, 185, 0.9);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.76);
+      overflow: hidden;
+    }
+
+    .api-item summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 18px;
+    }
+
+    .api-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .api-item[open] summary {
+      border-bottom: 1px solid rgba(219, 205, 185, 0.8);
+      background: rgba(13, 107, 120, 0.04);
+    }
+
+    .summary-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .summary-title {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 1.03rem;
+      font-weight: 800;
+    }
+
+    .signature {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--mono);
+      color: #234956;
+      background: rgba(215, 236, 240, 0.72);
+      border: 1px solid rgba(190, 219, 223, 0.9);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      max-width: 48%;
+    }
+
+    .summary-text {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .item-body {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .item-body section {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(228, 220, 208, 0.9);
+    }
+
+    .item-body h5 {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      color: var(--accent-2);
+    }
+
+    .item-body p, .item-body li {
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .item-body ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .hidden-by-search {
+      display: none !important;
+    }
+
+    @media (max-width: 1080px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .class-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-head {
+        flex-direction: column;
+      }
+
+      .signature {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>RENDES_fizinfo.py</h1>
+        <p>Gyorsan kereshető, oktatási fókuszú HTML-dokumentáció a teljes publikus API-ról.</p>
+      </div>
+
+      <div class="stats">
+        <span class="badge badge-function">11 top-level elem</span>
+        <span class="badge badge-class">2 class</span>
+        <span class="badge badge-method">72 class-elem</span>
+      </div>
+
+      <div class="search-box">
+        <label for="doc-search">Gyors kereső</label>
+        <input id="doc-search" type="search" placeholder="Keresés névre, docstringre, témára...">
+        <div class="search-help">Szűr névre, signature-re és a rövid magyar leírásra is.</div>
+      </div>
+
+      <nav class="nav-block">
+        <h2>Ugrás a szekciókhoz</h2>
+        <a href="#section-altalanos">Általános számítási függvények</a>
+        <a href="#class-num_kinem">num_kinem</a>
+        <a href="#class-num_dinam">num_dinam</a>
+        <a href="#section-gps">GPS és smoothing</a>
+        <a href="#section-modellek">Kész fizikai modellek</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="eyebrow">Cheat sheet + referencia</div>
+        <h2>Fizikai programozáshoz készült, böngészhető API-doksi</h2>
+        <p>
+          A cél nem csak az, hogy lásd, milyen függvények vannak a modulban, hanem az is,
+          hogy gyorsan megtaláld, melyik elem mire való. A top-level függvények, a két fő class,
+          a publikus metódusok és a property-k külön, kereshető és összecsukható blokkokban
+          jelennek meg.
+        </p>
+      </section>
+
+      
+            <section class="section-panel" id="section-altalanos">
+              <header class="section-header">
+                <div class="eyebrow"><span class="badge badge-group">szekció</span> <span class="badge badge-group">6 elem</span></div>
+                <h2>Általános számítási függvények</h2>
+                <p>Alap numerikus rutinok deriváláshoz, integráláshoz és egyszerű vektorműveletekhez.</p>
+              </header>
+              
+    <details class="api-item" id="fn-deriv" data-search="deriv egyváltozós, táblázatosan megadott függvény numerikus deriváltját számítja ki.
+
+fizikai jelentés:
+    ha az `xx_tab` az időpontokat, az `ff_tab` pedig egy fizikai mennyiség
+    mért vagy számított értékeit tartalmazza, akkor a visszatérési érték
+    ennek a mennyiségnek az idő szerinti változási sebessége. például
+    hely-idő adatokból sebességet, sebesség-idő adatokból gyorsulást ad.
+
+paraméterek:
+    xx_tab: az alappontok egy dimenziós tömbje. tipikusan idő (`t`) vagy
+        egy általános független változó.
+    ff_tab: a deriválandó függvény értékei az `xx_tab` pontjaiban.
+
+visszatérési érték:
+    numpy-tömb, amely az `ff_tab` numerikus deriváltját tartalmazza az
+    `xx_tab` pontjaiban. az egysége az `ff_tab` egysége osztva az
+    `xx_tab` egységével. táblázatosan megadott függvény numerikus deriváltját számolja; tipikusan helyből sebességet vagy sebességből gyorsulást ad.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">deriv</span>
+          </div>
+          <code class="signature">deriv(xx_tab, ff_tab)</code>
+        </div>
+        <div class="summary-text">Táblázatosan megadott függvény numerikus deriváltját számolja; tipikusan helyből sebességet vagy sebességből gyorsulást ad.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Egyváltozós, táblázatosan megadott függvény numerikus deriváltját számítja ki.</p><p>Fizikai jelentés: Ha az `xx_tab` az időpontokat, az `ff_tab` pedig egy fizikai mennyiség mért vagy számított értékeit tartalmazza, akkor a visszatérési érték ennek a mennyiségnek az idő szerinti változási sebessége. Például hely-idő adatokból sebességet, sebesség-idő adatokból gyorsulást ad.</p><p>Paraméterek: xx_tab: Az alappontok egy dimenziós tömbje. Tipikusan idő (`t`) vagy egy általános független változó. ff_tab: A deriválandó függvény értékei az `xx_tab` pontjaiban.</p><p>Visszatérési érték: NumPy-tömb, amely az `ff_tab` numerikus deriváltját tartalmazza az `xx_tab` pontjaiban. Az egysége az `ff_tab` egysége osztva az `xx_tab` egységével.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>xx_tab: Az alappontok egy dimenziós tömbje. Tipikusan idő (`t`) vagy</li><li>egy általános független változó.</li><li>ff_tab: A deriválandó függvény értékei az `xx_tab` pontjaiban.</li></ul></section><section><h5>Visszatérési érték</h5><p>NumPy-tömb, amely az `ff_tab` numerikus deriváltját tartalmazza az `xx_tab` pontjaiban. Az egysége az `ff_tab` egysége osztva az `xx_tab` egységével.</p></section><section><h5>Fizikai jelentés</h5><p>Ha az `xx_tab` az időpontokat, az `ff_tab` pedig egy fizikai mennyiség mért vagy számított értékeit tartalmazza, akkor a visszatérési érték ennek a mennyiségnek az idő szerinti változási sebessége. Például hely-idő adatokból sebességet, sebesség-idő adatokból gyorsulást ad.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-deriv_nd" data-search="deriv_nd deriválás a 0-es tengely mentén a numpy rutinjával.
+
+fizikai jelentés:
+    többkomponensű fizikai mennyiségek numerikus deriváltját számítja ki.
+    például egy `r(t)` helyvektor táblázatából `v(t)` sebességvektort,
+    vagy egy `v(t)` sebességvektorból `a(t)` gyorsulásvektort állít elő.
+
+paraméterek:
+    xx_tab: az alappontok egy dimenziós tömbje, általában az időpontok
+        sorozata.
+    ff_tab: többdimenziós adattömb. a 0. tengely mentén változik a
+        független változó, az 1. tengely mentén vannak a vektorkomponensek.
+
+visszatérési érték:
+    numpy-tömb az `ff_tab` deriváltjaival. alakja megegyezik az `ff_tab`
+    alakjával, egysége pedig az `ff_tab` egysége osztva az `xx_tab`
+    egységével. többdimenziós adatsor numerikus deriváltja, például vektorhelyzetből sebességvektor.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">deriv_nd</span>
+          </div>
+          <code class="signature">deriv_nd(xx_tab, ff_tab)</code>
+        </div>
+        <div class="summary-text">Többdimenziós adatsor numerikus deriváltja, például vektorhelyzetből sebességvektor.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Deriválás a 0-es tengely mentén a NumPy rutinjával.</p><p>Fizikai jelentés: Többkomponensű fizikai mennyiségek numerikus deriváltját számítja ki. Például egy `r(t)` helyvektor táblázatából `v(t)` sebességvektort, vagy egy `v(t)` sebességvektorból `a(t)` gyorsulásvektort állít elő.</p><p>Paraméterek: xx_tab: Az alappontok egy dimenziós tömbje, általában az időpontok sorozata. ff_tab: Többdimenziós adattömb. A 0. tengely mentén változik a független változó, az 1. tengely mentén vannak a vektorkomponensek.</p><p>Visszatérési érték: NumPy-tömb az `ff_tab` deriváltjaival. Alakja megegyezik az `ff_tab` alakjával, egysége pedig az `ff_tab` egysége osztva az `xx_tab` egységével.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>xx_tab: Az alappontok egy dimenziós tömbje, általában az időpontok</li><li>sorozata.</li><li>ff_tab: Többdimenziós adattömb. A 0. tengely mentén változik a</li><li>független változó, az 1. tengely mentén vannak a vektorkomponensek.</li></ul></section><section><h5>Visszatérési érték</h5><p>NumPy-tömb az `ff_tab` deriváltjaival. Alakja megegyezik az `ff_tab` alakjával, egysége pedig az `ff_tab` egysége osztva az `xx_tab` egységével.</p></section><section><h5>Fizikai jelentés</h5><p>Többkomponensű fizikai mennyiségek numerikus deriváltját számítja ki. Például egy `r(t)` helyvektor táblázatából `v(t)` sebességvektort, vagy egy `v(t)` sebességvektorból `a(t)` gyorsulásvektort állít elő.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-integ" data-search="integ egyváltozós, táblázatosan megadott függvény numerikus integrálját számítja.
+
+fizikai jelentés:
+    ha az `ff_tab` egy változási sebességet tartalmaz, akkor az integrál
+    a felhalmozódott mennyiséget adja meg. például sebesség-idő adatokból
+    helyet vagy elmozdulást, gyorsulás-idő adatokból sebességet számolhatunk.
+
+paraméterek:
+    xx_tab: az alappontok egy dimenziós tömbje, tipikusan időpontok.
+    ff_tab: az integrálandó függvény értékei az `xx_tab` pontjaiban.
+    f0: a kezdeti integrálási állandó. fizikailag például kezdőhely vagy
+        kezdősebesség lehet.
+
+visszatérési érték:
+    numpy-tömb, amely az integrál értékeit tartalmazza minden `xx_tab`
+    pontban. az első érték `f0`, az egység pedig `ff_tab` egysége szorozva
+    `xx_tab` egységével. egyváltozós adatsor numerikus integrálja; például gyorsulásból sebesség vagy sebességből út.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">integ</span>
+          </div>
+          <code class="signature">integ(xx_tab, ff_tab, F0=0.0)</code>
+        </div>
+        <div class="summary-text">Egyváltozós adatsor numerikus integrálja; például gyorsulásból sebesség vagy sebességből út.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Egyváltozós, táblázatosan megadott függvény numerikus integrálját számítja.</p><p>Fizikai jelentés: Ha az `ff_tab` egy változási sebességet tartalmaz, akkor az integrál a felhalmozódott mennyiséget adja meg. Például sebesség-idő adatokból helyet vagy elmozdulást, gyorsulás-idő adatokból sebességet számolhatunk.</p><p>Paraméterek: xx_tab: Az alappontok egy dimenziós tömbje, tipikusan időpontok. ff_tab: Az integrálandó függvény értékei az `xx_tab` pontjaiban. F0: A kezdeti integrálási állandó. Fizikailag például kezdőhely vagy kezdősebesség lehet.</p><p>Visszatérési érték: NumPy-tömb, amely az integrál értékeit tartalmazza minden `xx_tab` pontban. Az első érték `F0`, az egység pedig `ff_tab` egysége szorozva `xx_tab` egységével.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>xx_tab: Az alappontok egy dimenziós tömbje, tipikusan időpontok.</li><li>ff_tab: Az integrálandó függvény értékei az `xx_tab` pontjaiban.</li><li>F0: A kezdeti integrálási állandó. Fizikailag például kezdőhely vagy</li><li>kezdősebesség lehet.</li></ul></section><section><h5>Visszatérési érték</h5><p>NumPy-tömb, amely az integrál értékeit tartalmazza minden `xx_tab` pontban. Az első érték `F0`, az egység pedig `ff_tab` egysége szorozva `xx_tab` egységével.</p></section><section><h5>Fizikai jelentés</h5><p>Ha az `ff_tab` egy változási sebességet tartalmaz, akkor az integrál a felhalmozódott mennyiséget adja meg. Például sebesség-idő adatokból helyet vagy elmozdulást, gyorsulás-idő adatokból sebességet számolhatunk.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-integ_nd" data-search="integ_nd trapézszabály szerinti integrálás vektorizált formában.
+
+fizikai jelentés:
+    többkomponensű mennyiségek idő szerinti integrálját számítja ki.
+    például gyorsulásvektorból sebességvektort, sebességvektorból
+    helyvektort lehet vele közelítőleg meghatározni.
+
+paraméterek:
+    xx_tab: az alappontok egy dimenziós tömbje, általában időpontok.
+    ff_tab: többdimenziós adattömb. a 0. tengely az idő- vagy alappontok
+        tengelye, az 1. tengely a vektorkomponenseké.
+    f0: kezdeti érték vagy integrálási állandó. skalár vagy komponensenkénti
+        kezdőérték is lehet, például `r0` vagy `v0`.
+
+visszatérési érték:
+    numpy-tömb az integrált többkomponensű mennyiség értékeivel. alakja
+    megegyezik az `ff_tab` alakjával, fizikai egysége `ff_tab` egysége
+    szorozva az `xx_tab` egységével. többdimenziós mennyiség numerikus integrálja, vektoros pályaszámításhoz.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">integ_nd</span>
+          </div>
+          <code class="signature">integ_nd(xx_tab, ff_tab, F0=0.0)</code>
+        </div>
+        <div class="summary-text">Többdimenziós mennyiség numerikus integrálja, vektoros pályaszámításhoz.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Trapézszabály szerinti integrálás vektorizált formában.</p><p>Fizikai jelentés: Többkomponensű mennyiségek idő szerinti integrálját számítja ki. Például gyorsulásvektorból sebességvektort, sebességvektorból helyvektort lehet vele közelítőleg meghatározni.</p><p>Paraméterek: xx_tab: Az alappontok egy dimenziós tömbje, általában időpontok. ff_tab: Többdimenziós adattömb. A 0. tengely az idő- vagy alappontok tengelye, az 1. tengely a vektorkomponenseké. F0: Kezdeti érték vagy integrálási állandó. Skalár vagy komponensenkénti kezdőérték is lehet, például `r0` vagy `v0`.</p><p>Visszatérési érték: NumPy-tömb az integrált többkomponensű mennyiség értékeivel. Alakja megegyezik az `ff_tab` alakjával, fizikai egysége `ff_tab` egysége szorozva az `xx_tab` egységével.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>xx_tab: Az alappontok egy dimenziós tömbje, általában időpontok.</li><li>ff_tab: Többdimenziós adattömb. A 0. tengely az idő- vagy alappontok</li><li>tengelye, az 1. tengely a vektorkomponenseké.</li><li>F0: Kezdeti érték vagy integrálási állandó. Skalár vagy komponensenkénti</li><li>kezdőérték is lehet, például `r0` vagy `v0`.</li></ul></section><section><h5>Visszatérési érték</h5><p>NumPy-tömb az integrált többkomponensű mennyiség értékeivel. Alakja megegyezik az `ff_tab` alakjával, fizikai egysége `ff_tab` egysége szorozva az `xx_tab` egységével.</p></section><section><h5>Fizikai jelentés</h5><p>Többkomponensű mennyiségek idő szerinti integrálját számítja ki. Például gyorsulásvektorból sebességvektort, sebességvektorból helyvektort lehet vele közelítőleg meghatározni.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-vect_abs" data-search="vect_abs vektorok abszolút értékét, vagyis nagyságát számítja ki soronként.
+
+fizikai jelentés:
+    vektormennyiségek komponenseiből skalár nagyságot képez. például
+    sebességvektorból sebességnagyságot, gyorsulásvektorból gyorsulásnagyságot,
+    elmozdulásvektorból megtett kis szakaszhosszt ad.
+
+paraméterek:
+    vect: kétdimenziós numpy-tömb, ahol minden sor egy vektor, az oszlopok
+        pedig a vektor komponensei.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb. az `i`. eleme a `vect[i, :]` vektor euklideszi
+    hossza. vektorok hosszát számolja ki, vagyis a nagyságot irány nélkül.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">vect_abs</span>
+          </div>
+          <code class="signature">vect_abs(vect)</code>
+        </div>
+        <div class="summary-text">Vektorok hosszát számolja ki, vagyis a nagyságot irány nélkül.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Vektorok abszolút értékét, vagyis nagyságát számítja ki soronként.</p><p>Fizikai jelentés: Vektormennyiségek komponenseiből skalár nagyságot képez. Például sebességvektorból sebességnagyságot, gyorsulásvektorból gyorsulásnagyságot, elmozdulásvektorból megtett kis szakaszhosszt ad.</p><p>Paraméterek: vect: Kétdimenziós NumPy-tömb, ahol minden sor egy vektor, az oszlopok pedig a vektor komponensei.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb. Az `i`. eleme a `vect[i, :]` vektor euklideszi hossza.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>vect: Kétdimenziós NumPy-tömb, ahol minden sor egy vektor, az oszlopok</li><li>pedig a vektor komponensei.</li></ul></section><section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb. Az `i`. eleme a `vect[i, :]` vektor euklideszi hossza.</p></section><section><h5>Fizikai jelentés</h5><p>Vektormennyiségek komponenseiből skalár nagyságot képez. Például sebességvektorból sebességnagyságot, gyorsulásvektorból gyorsulásnagyságot, elmozdulásvektorból megtett kis szakaszhosszt ad.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-arg_eq" data-search="arg_eq azon &#x27;i&#x27; indexek táblázata, mely esetén tab[i]&lt;=value&lt;tab[i+1] vagy tab[i]&gt;=value&gt;tab[i+1].
+
+fizikai jelentés:
+    megkeresi, hogy egy táblázatosan megadott, akár növekvő, akár csökkenő
+    mennyiség hol éri el vagy hol lépi át a megadott értéket. például
+    használható annak keresésére, hogy a test mikor halad át egy adott
+    koordinátán vagy mikor ér el egy adott sebességet.
+
+paraméterek:
+    tab: egy dimenziós tömb, amelyben keresünk.
+    value: a keresett érték.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb azokról az indexekről, ahol `tab` pontosan
+    megegyezik a keresett értékkel, vagy két szomszédos elem között átlépi
+    azt. megközelítő egyezést keres tömbben; tipikusan események vagy küszöbátlépések megtalálására hasznos.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">arg_eq</span>
+          </div>
+          <code class="signature">arg_eq(tab, value)</code>
+        </div>
+        <div class="summary-text">Megközelítő egyezést keres tömbben; tipikusan események vagy küszöbátlépések megtalálására hasznos.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Azon &#x27;i&#x27; indexek táblázata, mely esetén tab[i]&lt;=value&lt;tab[i+1] vagy tab[i]&gt;=value&gt;tab[i+1].</p><p>Fizikai jelentés: Megkeresi, hogy egy táblázatosan megadott, akár növekvő, akár csökkenő mennyiség hol éri el vagy hol lépi át a megadott értéket. Például használható annak keresésére, hogy a test mikor halad át egy adott koordinátán vagy mikor ér el egy adott sebességet.</p><p>Paraméterek: tab: Egy dimenziós tömb, amelyben keresünk. value: A keresett érték.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb azokról az indexekről, ahol `tab` pontosan megegyezik a keresett értékkel, vagy két szomszédos elem között átlépi azt.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>tab: Egy dimenziós tömb, amelyben keresünk.</li><li>value: A keresett érték.</li></ul></section><section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb azokról az indexekről, ahol `tab` pontosan megegyezik a keresett értékkel, vagy két szomszédos elem között átlépi azt.</p></section><section><h5>Fizikai jelentés</h5><p>Megkeresi, hogy egy táblázatosan megadott, akár növekvő, akár csökkenő mennyiség hol éri el vagy hol lépi át a megadott értéket. Például használható annak keresésére, hogy a test mikor halad át egy adott koordinátán vagy mikor ér el egy adott sebességet.</p></section>
+      </div>
+    </details>
+    
+            </section>
+            
+      
+    <section class="class-panel" id="class-num_kinem">
+      <header class="class-header">
+        <div>
+          <div class="eyebrow"><span class="badge badge-class">class</span> <span class="badge badge-group">53 elem</span></div>
+          <h3>num_kinem</h3>
+        </div>
+        <p class="class-summary">Kinematikai adatokból dolgozó alap class: időrácsot, helyet, sebességet, gyorsulást és sok származtatott mennyiséget kezel.</p>
+      </header>
+      <div class="class-meta">
+        <section>
+          <h4>Mit reprezentál?</h4>
+          <p>Akkor hasznos, ha a pályát vagy annak valamelyik komponensét analitikusan vagy mérésből ismerjük, és ebből akarunk sebességet, gyorsulást, pályahosszt vagy speciális lekérdezéseket számolni.</p>
+        </section>
+        <section>
+          <h4>Tipikus workflow</h4>
+          <p>Jellemző használat: időrács beállítása → r/v/a függvény megadása vagy adatok betöltése → full_kinem_calc() → lekérdezések és ábrák.</p>
+        </section>
+      </div>
+      <section class='method-group'><h4>Létrehozás</h4>
+    <details class="api-item" id="num_kinem-__init__" data-search="num_kinem __init__ létrehoz egy `num_kinem` objektumot a megadott dimenziószámmal.
+
+fizikai jelentés:
+    meghatározza, hogy a későbbi hely-, sebesség- és gyorsulásvektorok
+    hány komponensből állnak. kétdimenziós síkmozgáshoz például
+    `ndim=2`, térbeli mozgáshoz `ndim=3` használható.
+
+paraméterek:
+    ndim: a mozgás dimenziószáma.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az új objektum `ndim` attribútuma
+    beállításra kerül. létrehozza az objektumot a kívánt dimenziószámmal és alapállapottal.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Létrehozás</span>
+            <span class="item-name">__init__</span>
+          </div>
+          <code class="signature">num_kinem.__init__(self, Ndim)</code>
+        </div>
+        <div class="summary-text">Létrehozza az objektumot a kívánt dimenziószámmal és alapállapottal.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Létrehoz egy `num_kinem` objektumot a megadott dimenziószámmal.</p><p>Fizikai jelentés: Meghatározza, hogy a későbbi hely-, sebesség- és gyorsulásvektorok hány komponensből állnak. Kétdimenziós síkmozgáshoz például `Ndim=2`, térbeli mozgáshoz `Ndim=3` használható.</p><p>Paraméterek: Ndim: A mozgás dimenziószáma.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az új objektum `Ndim` attribútuma beállításra kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Ndim: A mozgás dimenziószáma.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az új objektum `Ndim` attribútuma beállításra kerül.</p></section><section><h5>Fizikai jelentés</h5><p>Meghatározza, hogy a későbbi hely-, sebesség- és gyorsulásvektorok hány komponensből állnak. Kétdimenziós síkmozgáshoz például `Ndim=2`, térbeli mozgáshoz `Ndim=3` használható.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Beállítás</h4>
+    <details class="api-item" id="num_kinem-set_time_range" data-search="num_kinem set_time_range az időtartomány beállítása egyenletes lépésközzel.
+
+fizikai jelentés:
+    létrehozza azokat az időpontokat, amelyeknél a mozgás adatait
+    tároljuk vagy kiszámítjuk. ez adja a numerikus számítás időrácsát.
+
+paraméterek:
+    t_start: a kezdő időpont.
+    t_end: a végső időpont felső határa. az `np.arange` miatt ez az
+        érték általában már nem része az időtömbnek.
+    delta_t: az időlépés nagysága.
+
+visszatérési érték:
+    nincs külön visszatérési érték. beállítja a `t_start`, `t_end`,
+    `delta_t` és `t` attribútumokat. beállítja a kinematikai számítás időrácsát.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_time_range</span>
+          </div>
+          <code class="signature">num_kinem.set_time_range(self, t_start, t_end, delta_t)</code>
+        </div>
+        <div class="summary-text">Beállítja a kinematikai számítás időrácsát.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az időtartomány beállítása egyenletes lépésközzel.</p><p>Fizikai jelentés: Létrehozza azokat az időpontokat, amelyeknél a mozgás adatait tároljuk vagy kiszámítjuk. Ez adja a numerikus számítás időrácsát.</p><p>Paraméterek: t_start: A kezdő időpont. t_end: A végső időpont felső határa. Az `np.arange` miatt ez az érték általában már nem része az időtömbnek. delta_t: Az időlépés nagysága.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Beállítja a `t_start`, `t_end`, `delta_t` és `t` attribútumokat.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>t_start: A kezdő időpont.</li><li>t_end: A végső időpont felső határa. Az `np.arange` miatt ez az</li><li>érték általában már nem része az időtömbnek.</li><li>delta_t: Az időlépés nagysága.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Beállítja a `t_start`, `t_end`, `delta_t` és `t` attribútumokat.</p></section><section><h5>Fizikai jelentés</h5><p>Létrehozza azokat az időpontokat, amelyeknél a mozgás adatait tároljuk vagy kiszámítjuk. Ez adja a numerikus számítás időrácsát.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-set_r_fun" data-search="num_kinem set_r_fun &#x27;r&#x27; értékek beállítása függvény alapján a meglevő &#x27;t&#x27; értékekhez.
+
+fizikai jelentés:
+    a megadott hely-idő függvényből előállítja a test helyvektorait az
+    objektum `t` időpontjaiban. így analitikusan megadott pályát lehet
+    táblázatos mozgásadattá alakítani.
+
+paraméterek:
+    fun: egy függvény, amely egy időpontot kap, és egy `ndim`
+        komponensű helyvektort ad vissza.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a kiszámított helyvektorok az `r`
+    attribútumba kerülnek. analitikus helyfüggvényt ad meg a kinematikai objektumnak.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_r_fun</span>
+          </div>
+          <code class="signature">num_kinem.set_r_fun(self, fun)</code>
+        </div>
+        <div class="summary-text">Analitikus helyfüggvényt ad meg a kinematikai objektumnak.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>&#x27;r&#x27; értékek beállítása függvény alapján a meglevő &#x27;t&#x27; értékekhez.</p><p>Fizikai jelentés: A megadott hely-idő függvényből előállítja a test helyvektorait az objektum `t` időpontjaiban. Így analitikusan megadott pályát lehet táblázatos mozgásadattá alakítani.</p><p>Paraméterek: fun: Egy függvény, amely egy időpontot kap, és egy `Ndim` komponensű helyvektort ad vissza.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A kiszámított helyvektorok az `r` attribútumba kerülnek.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fun: Egy függvény, amely egy időpontot kap, és egy `Ndim`</li><li>komponensű helyvektort ad vissza.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A kiszámított helyvektorok az `r` attribútumba kerülnek.</p></section><section><h5>Fizikai jelentés</h5><p>A megadott hely-idő függvényből előállítja a test helyvektorait az objektum `t` időpontjaiban. Így analitikusan megadott pályát lehet táblázatos mozgásadattá alakítani.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-set_v_fun" data-search="num_kinem set_v_fun &#x27;v&#x27; értékek beállítása függvény alapján a meglevő &#x27;t&#x27; értékekhez.
+
+fizikai jelentés:
+    a megadott sebesség-idő függvényből előállítja a test
+    sebességvektorait az objektum `t` időpontjaiban.
+
+paraméterek:
+    fun: egy függvény, amely egy időpontot kap, és egy `ndim`
+        komponensű sebességvektort ad vissza.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a kiszámított sebességvektorok a
+    `v` attribútumba kerülnek. analitikus sebességfüggvényt ad meg.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_v_fun</span>
+          </div>
+          <code class="signature">num_kinem.set_v_fun(self, fun)</code>
+        </div>
+        <div class="summary-text">Analitikus sebességfüggvényt ad meg.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>&#x27;v&#x27; értékek beállítása függvény alapján a meglevő &#x27;t&#x27; értékekhez.</p><p>Fizikai jelentés: A megadott sebesség-idő függvényből előállítja a test sebességvektorait az objektum `t` időpontjaiban.</p><p>Paraméterek: fun: Egy függvény, amely egy időpontot kap, és egy `Ndim` komponensű sebességvektort ad vissza.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A kiszámított sebességvektorok a `v` attribútumba kerülnek.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fun: Egy függvény, amely egy időpontot kap, és egy `Ndim`</li><li>komponensű sebességvektort ad vissza.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A kiszámított sebességvektorok a `v` attribútumba kerülnek.</p></section><section><h5>Fizikai jelentés</h5><p>A megadott sebesség-idő függvényből előállítja a test sebességvektorait az objektum `t` időpontjaiban.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-set_a_fun" data-search="num_kinem set_a_fun &#x27;a&#x27; értékek beállítása függvény alapján a meglevő &#x27;t&#x27; értékekhez.
+
+fizikai jelentés:
+    a megadott gyorsulás-idő függvényből előállítja a test
+    gyorsulásvektorait az objektum `t` időpontjaiban.
+
+paraméterek:
+    fun: egy függvény, amely egy időpontot kap, és egy `ndim`
+        komponensű gyorsulásvektort ad vissza.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a kiszámított gyorsulásvektorok az
+    `a` attribútumba kerülnek. analitikus gyorsulásfüggvényt ad meg.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_a_fun</span>
+          </div>
+          <code class="signature">num_kinem.set_a_fun(self, fun)</code>
+        </div>
+        <div class="summary-text">Analitikus gyorsulásfüggvényt ad meg.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>&#x27;a&#x27; értékek beállítása függvény alapján a meglevő &#x27;t&#x27; értékekhez.</p><p>Fizikai jelentés: A megadott gyorsulás-idő függvényből előállítja a test gyorsulásvektorait az objektum `t` időpontjaiban.</p><p>Paraméterek: fun: Egy függvény, amely egy időpontot kap, és egy `Ndim` komponensű gyorsulásvektort ad vissza.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A kiszámított gyorsulásvektorok az `a` attribútumba kerülnek.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fun: Egy függvény, amely egy időpontot kap, és egy `Ndim`</li><li>komponensű gyorsulásvektort ad vissza.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A kiszámított gyorsulásvektorok az `a` attribútumba kerülnek.</p></section><section><h5>Fizikai jelentés</h5><p>A megadott gyorsulás-idő függvényből előállítja a test gyorsulásvektorait az objektum `t` időpontjaiban.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Számítás</h4>
+    <details class="api-item" id="num_kinem-calc_r_to_v" data-search="num_kinem calc_r_to_v helyből sebesség számítás.
+
+fizikai jelentés:
+    a helyvektor idő szerinti deriváltját számítja ki, vagyis a test
+    sebességvektorát határozza meg a táblázatos `r(t)` adatokból.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. az objektum `t` és `r` attribútumait
+    használja.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredmény a `v` attribútumba
+    kerül. hely-idő adatokból sebességet számít numerikusan.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_r_to_v</span>
+          </div>
+          <code class="signature">num_kinem.calc_r_to_v(self)</code>
+        </div>
+        <div class="summary-text">Hely-idő adatokból sebességet számít numerikusan.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Helyből sebesség számítás.</p><p>Fizikai jelentés: A helyvektor idő szerinti deriváltját számítja ki, vagyis a test sebességvektorát határozza meg a táblázatos `r(t)` adatokból.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. Az objektum `t` és `r` attribútumait használja.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredmény a `v` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. Az objektum `t` és `r` attribútumait</li><li>használja.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredmény a `v` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>A helyvektor idő szerinti deriváltját számítja ki, vagyis a test sebességvektorát határozza meg a táblázatos `r(t)` adatokból.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_v_to_a" data-search="num_kinem calc_v_to_a sebességből gyorsulás számítás.
+
+fizikai jelentés:
+    a sebességvektor idő szerinti deriváltját számítja ki, vagyis a
+    test gyorsulásvektorát határozza meg a `v(t)` adatokból.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. az objektum `t` és `v` attribútumait
+    használja.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredmény az `a` attribútumba
+    kerül. sebesség-idő adatokból gyorsulást számít numerikusan.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_v_to_a</span>
+          </div>
+          <code class="signature">num_kinem.calc_v_to_a(self)</code>
+        </div>
+        <div class="summary-text">Sebesség-idő adatokból gyorsulást számít numerikusan.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Sebességből gyorsulás számítás.</p><p>Fizikai jelentés: A sebességvektor idő szerinti deriváltját számítja ki, vagyis a test gyorsulásvektorát határozza meg a `v(t)` adatokból.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. Az objektum `t` és `v` attribútumait használja.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredmény az `a` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. Az objektum `t` és `v` attribútumait</li><li>használja.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredmény az `a` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>A sebességvektor idő szerinti deriváltját számítja ki, vagyis a test gyorsulásvektorát határozza meg a `v(t)` adatokból.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_a_to_v" data-search="num_kinem calc_a_to_v gyorsulásból sebesség számolás.
+
+fizikai jelentés:
+    a gyorsulás idő szerinti integrálásával sebességet számít. a
+    `v0` adja meg az integrálási állandót, vagyis a kezdősebességet.
+
+paraméterek:
+    v0: kezdősebesség. lehet skalár vagy komponensenként megadott vektor.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredmény a `v` attribútumba
+    kerül. gyorsulásból sebességet integrál.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_a_to_v</span>
+          </div>
+          <code class="signature">num_kinem.calc_a_to_v(self, v0=0.0)</code>
+        </div>
+        <div class="summary-text">Gyorsulásból sebességet integrál.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Gyorsulásból sebesség számolás.</p><p>Fizikai jelentés: A gyorsulás idő szerinti integrálásával sebességet számít. A `v0` adja meg az integrálási állandót, vagyis a kezdősebességet.</p><p>Paraméterek: v0: Kezdősebesség. Lehet skalár vagy komponensenként megadott vektor.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredmény a `v` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>v0: Kezdősebesség. Lehet skalár vagy komponensenként megadott vektor.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredmény a `v` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>A gyorsulás idő szerinti integrálásával sebességet számít. A `v0` adja meg az integrálási állandót, vagyis a kezdősebességet.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_v_to_r" data-search="num_kinem calc_v_to_r sebességből hely számolás.
+
+fizikai jelentés:
+    a sebesség idő szerinti integrálásával helyvektort számít. az `r0`
+    adja meg az integrálási állandót, vagyis a kezdőhelyet.
+
+paraméterek:
+    r0: kezdőhely. lehet skalár vagy komponensenként megadott vektor.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredmény az `r` attribútumba
+    kerül. sebességből helyet integrál.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_v_to_r</span>
+          </div>
+          <code class="signature">num_kinem.calc_v_to_r(self, r0=0.0)</code>
+        </div>
+        <div class="summary-text">Sebességből helyet integrál.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Sebességből hely számolás.</p><p>Fizikai jelentés: A sebesség idő szerinti integrálásával helyvektort számít. Az `r0` adja meg az integrálási állandót, vagyis a kezdőhelyet.</p><p>Paraméterek: r0: Kezdőhely. Lehet skalár vagy komponensenként megadott vektor.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredmény az `r` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>r0: Kezdőhely. Lehet skalár vagy komponensenként megadott vektor.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredmény az `r` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>A sebesség idő szerinti integrálásával helyvektort számít. Az `r0` adja meg az integrálási állandót, vagyis a kezdőhelyet.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_delta_r" data-search="num_kinem calc_delta_r időlépések közti elmozdulás-vektorok számítása.
+
+fizikai jelentés:
+    minden szomszédos időpontpárra kiszámítja, mennyivel változott a
+    test helyvektora. ez a kis időlépés alatti elmozdulás vektora.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. az objektum `r` attribútumát
+    használja.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredmény a `delta_r`
+    attribútumba kerül, amelynek hossza eggyel kisebb, mint az `r`
+    időbeli hossza. szomszédos pontok közötti elmozdulásvektorokat számít.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_delta_r</span>
+          </div>
+          <code class="signature">num_kinem.calc_delta_r(self)</code>
+        </div>
+        <div class="summary-text">Szomszédos pontok közötti elmozdulásvektorokat számít.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Időlépések közti elmozdulás-vektorok számítása.</p><p>Fizikai jelentés: Minden szomszédos időpontpárra kiszámítja, mennyivel változott a test helyvektora. Ez a kis időlépés alatti elmozdulás vektora.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. Az objektum `r` attribútumát használja.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredmény a `delta_r` attribútumba kerül, amelynek hossza eggyel kisebb, mint az `r` időbeli hossza.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. Az objektum `r` attribútumát</li><li>használja.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredmény a `delta_r` attribútumba kerül, amelynek hossza eggyel kisebb, mint az `r` időbeli hossza.</p></section><section><h5>Fizikai jelentés</h5><p>Minden szomszédos időpontpárra kiszámítja, mennyivel változott a test helyvektora. Ez a kis időlépés alatti elmozdulás vektora.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_delta_r_abs" data-search="num_kinem calc_delta_r_abs időlépések közti elmozdulás-nagyságok számítása.
+
+fizikai jelentés:
+    minden szomszédos időpontpárra kiszámítja az elmozdulásvektor
+    hosszát. ez közelítőleg az adott kis időlépés alatt megtett út.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. az objektum `r` attribútumát
+    használja.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredmény a `delta_r_abs`
+    attribútumba kerül. az elmozdulásvektorok hosszát számítja ki.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_delta_r_abs</span>
+          </div>
+          <code class="signature">num_kinem.calc_delta_r_abs(self)</code>
+        </div>
+        <div class="summary-text">Az elmozdulásvektorok hosszát számítja ki.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Időlépések közti elmozdulás-nagyságok számítása.</p><p>Fizikai jelentés: Minden szomszédos időpontpárra kiszámítja az elmozdulásvektor hosszát. Ez közelítőleg az adott kis időlépés alatt megtett út.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. Az objektum `r` attribútumát használja.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredmény a `delta_r_abs` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. Az objektum `r` attribútumát</li><li>használja.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredmény a `delta_r_abs` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>Minden szomszédos időpontpárra kiszámítja az elmozdulásvektor hosszát. Ez közelítőleg az adott kis időlépés alatt megtett út.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_pathlength" data-search="num_kinem calc_pathlength úthossz a kezdeti időponttól.
+
+fizikai jelentés:
+    a pálya mentén megtett teljes utat számítja ki az indulástól az
+    egyes időpontokig. ez nem azonos az origótól mért távolsággal,
+    hanem az elmozdulás-szakaszok hosszainak összege.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. az objektum `r` attribútumából
+    dolgozik.
+
+visszatérési érték:
+    nincs külön visszatérési érték. beállítja a `delta_r_abs` és
+    `pathlength` attribútumokat. a `pathlength[0]` értéke 0. az indulástól mért összegzett pályahosszt építi fel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_pathlength</span>
+          </div>
+          <code class="signature">num_kinem.calc_pathlength(self)</code>
+        </div>
+        <div class="summary-text">Az indulástól mért összegzett pályahosszt építi fel.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Úthossz a kezdeti időponttól.</p><p>Fizikai jelentés: A pálya mentén megtett teljes utat számítja ki az indulástól az egyes időpontokig. Ez nem azonos az origótól mért távolsággal, hanem az elmozdulás-szakaszok hosszainak összege.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. Az objektum `r` attribútumából dolgozik.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Beállítja a `delta_r_abs` és `pathlength` attribútumokat. A `pathlength[0]` értéke 0.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. Az objektum `r` attribútumából</li><li>dolgozik.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Beállítja a `delta_r_abs` és `pathlength` attribútumokat. A `pathlength[0]` értéke 0.</p></section><section><h5>Fizikai jelentés</h5><p>A pálya mentén megtett teljes utat számítja ki az indulástól az egyes időpontokig. Ez nem azonos az origótól mért távolsággal, hanem az elmozdulás-szakaszok hosszainak összege.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-calc_at_acp_Rinv" data-search="num_kinem calc_at_acp_rinv kiszámítja a tangenciális, centripetális gyorsulásokat és a görbületi sugár reciprokát.
+
+fizikai jelentés:
+    a gyorsulást felbontja a pillanatnyi sebesség irányába eső
+    tangenciális komponensre és az arra merőleges centripetális
+    komponensre. a tangenciális gyorsulás a sebességnagyság változását,
+    a centripetális gyorsulás a mozgás irányának változását írja le.
+    a `rinv` a görbületi sugár reciproka, vagyis nagyobb érték élesebb
+    kanyarodást jelent.
+
+paraméterek:
+    eps: kis pozitív szám, amely megakadályozza a nullával osztást
+        nagyon kicsi sebességnél.
+
+visszatérési érték:
+    nincs külön visszatérési érték. beállítja az `a_t_abs`, `a_t`,
+    `a_cp`, `a_cp_abs` és `rinv` attribútumokat. tangenciális és centripetális gyorsulást, valamint görbületi adatokat számol.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">calc_at_acp_Rinv</span>
+          </div>
+          <code class="signature">num_kinem.calc_at_acp_Rinv(self, eps=1e-10)</code>
+        </div>
+        <div class="summary-text">Tangenciális és centripetális gyorsulást, valamint görbületi adatokat számol.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Kiszámítja a tangenciális, centripetális gyorsulásokat és a görbületi sugár reciprokát.</p><p>Fizikai jelentés: A gyorsulást felbontja a pillanatnyi sebesség irányába eső tangenciális komponensre és az arra merőleges centripetális komponensre. A tangenciális gyorsulás a sebességnagyság változását, a centripetális gyorsulás a mozgás irányának változását írja le. A `Rinv` a görbületi sugár reciproka, vagyis nagyobb érték élesebb kanyarodást jelent.</p><p>Paraméterek: eps: Kis pozitív szám, amely megakadályozza a nullával osztást nagyon kicsi sebességnél.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Beállítja az `a_t_abs`, `a_t`, `a_cp`, `a_cp_abs` és `Rinv` attribútumokat.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>eps: Kis pozitív szám, amely megakadályozza a nullával osztást</li><li>nagyon kicsi sebességnél.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Beállítja az `a_t_abs`, `a_t`, `a_cp`, `a_cp_abs` és `Rinv` attribútumokat.</p></section><section><h5>Fizikai jelentés</h5><p>A gyorsulást felbontja a pillanatnyi sebesség irányába eső tangenciális komponensre és az arra merőleges centripetális komponensre. A tangenciális gyorsulás a sebességnagyság változását, a centripetális gyorsulás a mozgás irányának változását írja le. A `Rinv` a görbületi sugár reciproka, vagyis nagyobb érték élesebb kanyarodást jelent.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-full_kinem_calc" data-search="num_kinem full_kinem_calc teljes kinematikai számítássorozat.
+
+fizikai jelentés:
+    a megadott hely- vagy sebességadatokból kiszámítja az összes
+    kinematikai mennyiséget: sebességet, gyorsulást, megtett utat,
+    elmozdulásvektorokat, valamint a tangenciális és centripetális
+    gyorsuláskomponenseket és a görbületi sugár reciprokát.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. az objektum meglévő `t` és `r`
+    attribútumait használja.
+
+visszatérési érték:
+    nincs külön visszatérési érték. beállítja a `v`, `a`,
+    `delta_r`, `delta_r_abs`, `pathlength`, `a_t`, `a_t_abs`,
+    `a_cp`, `a_cp_abs` és `rinv` attribútumokat. a kinematikai származtatott mennyiségek teljes láncát kiszámolja.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">full_kinem_calc</span>
+          </div>
+          <code class="signature">num_kinem.full_kinem_calc(self)</code>
+        </div>
+        <div class="summary-text">A kinematikai származtatott mennyiségek teljes láncát kiszámolja.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Teljes kinematikai számítássorozat.</p><p>Fizikai jelentés: A megadott hely- vagy sebességadatokból kiszámítja az összes kinematikai mennyiséget: sebességet, gyorsulást, megtett utat, elmozdulásvektorokat, valamint a tangenciális és centripetális gyorsuláskomponenseket és a görbületi sugár reciprokát.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. Az objektum meglévő `t` és `r` attribútumait használja.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Beállítja a `v`, `a`, `delta_r`, `delta_r_abs`, `pathlength`, `a_t`, `a_t_abs`, `a_cp`, `a_cp_abs` és `Rinv` attribútumokat.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. Az objektum meglévő `t` és `r`</li><li>attribútumait használja.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Beállítja a `v`, `a`, `delta_r`, `delta_r_abs`, `pathlength`, `a_t`, `a_t_abs`, `a_cp`, `a_cp_abs` és `Rinv` attribútumokat.</p></section><section><h5>Fizikai jelentés</h5><p>A megadott hely- vagy sebességadatokból kiszámítja az összes kinematikai mennyiséget: sebességet, gyorsulást, megtett utat, elmozdulásvektorokat, valamint a tangenciális és centripetális gyorsuláskomponenseket és a görbületi sugár reciprokát.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Lekérdezés és helper</h4>
+    <details class="api-item" id="num_kinem-clip_below_y" data-search="num_kinem clip_below_y levágja azokat az időlépéseket, ahol a test a megadott magasság alá kerül.
+
+mikor használd:
+    ha stop_cond-ot használsz talajra érés detektálására (pl. r[1] &lt;= 0),
+    a full_dinam_calc egy lépéssel túlmegy a talajon mielőtt megáll.
+    ez azt jelenti hogy az utolsó pontban y &lt; 0, ott a rugóerő/talajmodell
+    aktiválódik, és irreálisan nagy gyorsuláscsúcs jelenik meg a grafikonon.
+    
+    hívd meg full_dinam_calc() után, mielőtt bármit ábrázolsz:
+        ball_din.full_dinam_calc()
+        ball_din.clip_below_y()        # ← ezt
+        ball_din.plot_rva_coord()      # most már tiszta lesz
+
+paraméterek:
+    y_min: az a magasság [m] ami alá nem engedünk pontot. default: 0.0 (talaj). levágja a pályát egy választott y szint alatt.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">clip_below_y</span>
+          </div>
+          <code class="signature">num_kinem.clip_below_y(self, y_min=0.0)</code>
+        </div>
+        <div class="summary-text">Levágja a pályát egy választott y szint alatt.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Levágja azokat az időlépéseket, ahol a test a megadott magasság alá kerül.</p><p>MIKOR HASZNÁLD: Ha stop_cond-ot használsz talajra érés detektálására (pl. r[1] &lt;= 0), a full_dinam_calc egy lépéssel túlmegy a talajon mielőtt megáll. Ez azt jelenti hogy az utolsó pontban y &lt; 0, ott a rugóerő/talajmodell aktiválódik, és irreálisan nagy gyorsuláscsúcs jelenik meg a grafikonon. Hívd meg full_dinam_calc() után, mielőtt bármit ábrázolsz: ball_din.full_dinam_calc() ball_din.clip_below_y() # ← ezt ball_din.plot_rva_coord() # most már tiszta lesz</p><p>Paraméterek: y_min: Az a magasság [m] ami alá nem engedünk pontot. Default: 0.0 (talaj).</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>y_min: Az a magasság [m] ami alá nem engedünk pontot. Default: 0.0 (talaj).</li></ul></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-y_values_at_x" data-search="num_kinem y_values_at_x megadja, hogy a pálya milyen magasságokon halad át egy adott x koordinátánál.
+
+fizikai jelentés:
+    a függvény megkeresi, hogy a test pályája hol metszi az
+    x = keresett_x függőleges egyenest, és visszaadja az ottani y
+    koordinátákat. ez akkor is működik, ha az x koordináta nem monoton
+    növekszik.
+
+paraméterek:
+    keresett_x:
+        az a vízszintes koordináta [m], ahol a pálya magasságait keressük.
+
+    eps:
+        kis tűréshatár lebegőpontos összehasonlításhoz.
+
+visszatérési érték:
+    numpy-tömb az összes megtalált y értékkel [m].
+
+    ha a pálya nem éri el a keresett x koordinátát, akkor üres tömböt
+    ad vissza. megadja, hogy adott x helyen milyen y értékeken megy át a pálya.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">y_values_at_x</span>
+          </div>
+          <code class="signature">num_kinem.y_values_at_x(self, keresett_x, eps=1e-10)</code>
+        </div>
+        <div class="summary-text">Megadja, hogy adott x helyen milyen y értékeken megy át a pálya.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megadja, hogy a pálya milyen magasságokon halad át egy adott x koordinátánál.</p><p>Fizikai jelentés: A függvény megkeresi, hogy a test pályája hol metszi az x = keresett_x függőleges egyenest, és visszaadja az ottani y koordinátákat. Ez akkor is működik, ha az x koordináta nem monoton növekszik.</p><p>Paraméterek: keresett_x: Az a vízszintes koordináta [m], ahol a pálya magasságait keressük.</p><p>eps: Kis tűréshatár lebegőpontos összehasonlításhoz.</p><p>Visszatérési érték: NumPy-tömb az összes megtalált y értékkel [m].</p><p>Ha a pálya nem éri el a keresett x koordinátát, akkor üres tömböt ad vissza.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>keresett_x:</li><li>Az a vízszintes koordináta [m], ahol a pálya magasságait keressük.</li><li>eps:</li><li>Kis tűréshatár lebegőpontos összehasonlításhoz.</li></ul></section><section><h5>Visszatérési érték</h5><p>NumPy-tömb az összes megtalált y értékkel [m].</p><p>Ha a pálya nem éri el a keresett x koordinátát, akkor üres tömböt ad vissza.</p></section><section><h5>Fizikai jelentés</h5><p>A függvény megkeresi, hogy a test pályája hol metszi az x = keresett_x függőleges egyenest, és visszaadja az ottani y koordinátákat. Ez akkor is működik, ha az x koordináta nem monoton növekszik.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-x_values_at_y" data-search="num_kinem x_values_at_y megadja, hogy a pálya milyen x koordinátákon halad át egy adott y magasságnál.
+
+fizikai jelentés:
+    a függvény megkeresi, hogy a test pályája hol metszi az
+    y = keresett_y vízszintes egyenest, és visszaadja az ottani x
+    koordinátákat. ez akkor is működik, ha az y koordináta nem monoton
+    változik.
+
+paraméterek:
+    keresett_y:
+        az a függőleges koordináta / magasság [m], ahol a pálya
+        vízszintes helyeit keressük.
+
+    eps:
+        kis tűréshatár lebegőpontos összehasonlításhoz.
+
+visszatérési érték:
+    numpy-tömb az összes megtalált x értékkel [m].
+
+    ha a pálya nem éri el a keresett y koordinátát, akkor üres tömböt
+    ad vissza. megadja, hogy adott y szinten milyen x értékeken megy át a pálya.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">x_values_at_y</span>
+          </div>
+          <code class="signature">num_kinem.x_values_at_y(self, keresett_y, eps=1e-10)</code>
+        </div>
+        <div class="summary-text">Megadja, hogy adott y szinten milyen x értékeken megy át a pálya.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megadja, hogy a pálya milyen x koordinátákon halad át egy adott y magasságnál.</p><p>Fizikai jelentés: A függvény megkeresi, hogy a test pályája hol metszi az y = keresett_y vízszintes egyenest, és visszaadja az ottani x koordinátákat. Ez akkor is működik, ha az y koordináta nem monoton változik.</p><p>Paraméterek: keresett_y: Az a függőleges koordináta / magasság [m], ahol a pálya vízszintes helyeit keressük.</p><p>eps: Kis tűréshatár lebegőpontos összehasonlításhoz.</p><p>Visszatérési érték: NumPy-tömb az összes megtalált x értékkel [m].</p><p>Ha a pálya nem éri el a keresett y koordinátát, akkor üres tömböt ad vissza.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>keresett_y:</li><li>Az a függőleges koordináta / magasság [m], ahol a pálya</li><li>vízszintes helyeit keressük.</li><li>eps:</li><li>Kis tűréshatár lebegőpontos összehasonlításhoz.</li></ul></section><section><h5>Visszatérési érték</h5><p>NumPy-tömb az összes megtalált x értékkel [m].</p><p>Ha a pálya nem éri el a keresett y koordinátát, akkor üres tömböt ad vissza.</p></section><section><h5>Fizikai jelentés</h5><p>A függvény megkeresi, hogy a test pályája hol metszi az y = keresett_y vízszintes egyenest, és visszaadja az ottani x koordinátákat. Ez akkor is működik, ha az y koordináta nem monoton változik.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-passes_near_y_at_x" data-search="num_kinem passes_near_y_at_x megmondja, hogy a szimulált pálya adott x koordinátánál
+elég közel halad-e egy megadott y célértékhez.
+
+paraméterek:
+    keresett_x:
+        az az x koordináta, ahol a pályát vizsgáljuk [m].
+
+    cel_y:
+        az elvárt y koordináta / célmagasság [m].
+
+    tolerancia:
+        a célmagasságtól megengedett maximális eltérés [m].
+
+tipikus használat:
+    annak eldöntése, hogy egy labda az x = 8 m-nél lévő falon
+    átmegy-e a y = 4.5 m magasságú ablakon, adott tűréssel.
+
+visszatérési érték:
+    true:
+        ha a pálya az adott x koordinátánál legalább egyszer
+        cel_y ± tolerancia tartományba esik.
+
+    false:
+        ha a pálya nem éri el az adott x koordinátát, vagy ott
+        nincs elég közel a megadott y célértékhez. azt ellenőrzi, hogy adott x helyen a pálya közel megy-e egy célmagassághoz.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">passes_near_y_at_x</span>
+          </div>
+          <code class="signature">num_kinem.passes_near_y_at_x(self, keresett_x, cel_y, tolerancia=0.01)</code>
+        </div>
+        <div class="summary-text">Azt ellenőrzi, hogy adott x helyen a pálya közel megy-e egy célmagassághoz.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megmondja, hogy a szimulált pálya adott x koordinátánál elég közel halad-e egy megadott y célértékhez.</p><p>Paraméterek: keresett_x: Az az x koordináta, ahol a pályát vizsgáljuk [m].</p><p>cel_y: Az elvárt y koordináta / célmagasság [m].</p><p>tolerancia: A célmagasságtól megengedett maximális eltérés [m].</p><p>Tipikus használat: Annak eldöntése, hogy egy labda az x = 8 m-nél lévő falon átmegy-e a y = 4.5 m magasságú ablakon, adott tűréssel.</p><p>Visszatérési érték: True: Ha a pálya az adott x koordinátánál legalább egyszer cel_y ± tolerancia tartományba esik.</p><p>False: Ha a pálya nem éri el az adott x koordinátát, vagy ott nincs elég közel a megadott y célértékhez.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>keresett_x:</li><li>Az az x koordináta, ahol a pályát vizsgáljuk [m].</li><li>cel_y:</li><li>Az elvárt y koordináta / célmagasság [m].</li><li>tolerancia:</li><li>A célmagasságtól megengedett maximális eltérés [m].</li><li>Tipikus használat:</li><li>Annak eldöntése, hogy egy labda az x = 8 m-nél lévő falon</li><li>átmegy-e a y = 4.5 m magasságú ablakon, adott tűréssel.</li></ul></section><section><h5>Visszatérési érték</h5><p>True: Ha a pálya az adott x koordinátánál legalább egyszer cel_y ± tolerancia tartományba esik.</p><p>False: Ha a pálya nem éri el az adott x koordinátát, vagy ott nincs elég közel a megadott y célértékhez.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-passes_near_x_at_y" data-search="num_kinem passes_near_x_at_y megmondja, hogy a szimulált pálya adott y magasságnál
+elég közel halad-e egy megadott x célértékhez.
+
+paraméterek:
+    keresett_y:
+        az az y koordináta / magasság, ahol a pályát vizsgáljuk [m].
+
+    cel_x:
+        az elvárt x koordináta [m].
+
+    tolerancia:
+        a cél x koordinátától megengedett maximális eltérés [m].
+
+tipikus használat:
+    annak eldöntése, hogy egy labda adott magassági szinten
+    elhalad-e egy adott vízszintes hely közelében.
+
+visszatérési érték:
+    true:
+        ha a pálya az adott y magasságnál legalább egyszer
+        cel_x ± tolerancia tartományba esik.
+
+    false:
+        ha a pálya nem éri el az adott y magasságot, vagy ott
+        nincs elég közel a megadott x célértékhez. azt ellenőrzi, hogy adott y szinten a pálya közel megy-e egy cél-x értékhez.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">passes_near_x_at_y</span>
+          </div>
+          <code class="signature">num_kinem.passes_near_x_at_y(self, keresett_y, cel_x, tolerancia=0.01)</code>
+        </div>
+        <div class="summary-text">Azt ellenőrzi, hogy adott y szinten a pálya közel megy-e egy cél-x értékhez.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megmondja, hogy a szimulált pálya adott y magasságnál elég közel halad-e egy megadott x célértékhez.</p><p>Paraméterek: keresett_y: Az az y koordináta / magasság, ahol a pályát vizsgáljuk [m].</p><p>cel_x: Az elvárt x koordináta [m].</p><p>tolerancia: A cél x koordinátától megengedett maximális eltérés [m].</p><p>Tipikus használat: Annak eldöntése, hogy egy labda adott magassági szinten elhalad-e egy adott vízszintes hely közelében.</p><p>Visszatérési érték: True: Ha a pálya az adott y magasságnál legalább egyszer cel_x ± tolerancia tartományba esik.</p><p>False: Ha a pálya nem éri el az adott y magasságot, vagy ott nincs elég közel a megadott x célértékhez.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>keresett_y:</li><li>Az az y koordináta / magasság, ahol a pályát vizsgáljuk [m].</li><li>cel_x:</li><li>Az elvárt x koordináta [m].</li><li>tolerancia:</li><li>A cél x koordinátától megengedett maximális eltérés [m].</li><li>Tipikus használat:</li><li>Annak eldöntése, hogy egy labda adott magassági szinten</li><li>elhalad-e egy adott vízszintes hely közelében.</li></ul></section><section><h5>Visszatérési érték</h5><p>True: Ha a pálya az adott y magasságnál legalább egyszer cel_x ± tolerancia tartományba esik.</p><p>False: Ha a pálya nem éri el az adott y magasságot, vagy ott nincs elég közel a megadott x célértékhez.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-flies_over_obstacle" data-search="num_kinem flies_over_obstacle eldönti, hogy a pálya áthalad-e egy adott helyen álló akadály felett.
+
+fizikai jelentés:
+    megvizsgálja, hogy a test az x = obstacle_x helyen milyen
+    magasságban halad el. ha az adott x koordinátánál legalább egyszer
+    az akadály magassága felett jár, akkor az átrepülés lehetséges.
+
+paraméterek:
+    obstacle_x:
+        az akadály vízszintes távolsága a kiindulási ponttól [m].
+
+    obstacle_y:
+        az akadály magassága [m].
+
+visszatérési érték:
+    flies_over:
+        true, ha a pálya legalább egyszer az akadály magassága felett
+        halad át az adott x helyen. egyébként false.
+
+    y_values:
+        az összes megtalált y érték az x = obstacle_x helyen. megmondja, hogy a pálya átrepül-e egy megadott akadály fölött.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">flies_over_obstacle</span>
+          </div>
+          <code class="signature">num_kinem.flies_over_obstacle(self, obstacle_x, obstacle_y)</code>
+        </div>
+        <div class="summary-text">Megmondja, hogy a pálya átrepül-e egy megadott akadály fölött.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Eldönti, hogy a pálya áthalad-e egy adott helyen álló akadály felett.</p><p>Fizikai jelentés: Megvizsgálja, hogy a test az x = obstacle_x helyen milyen magasságban halad el. Ha az adott x koordinátánál legalább egyszer az akadály magassága felett jár, akkor az átrepülés lehetséges.</p><p>Paraméterek: obstacle_x: Az akadály vízszintes távolsága a kiindulási ponttól [m].</p><p>obstacle_y: Az akadály magassága [m].</p><p>Visszatérési érték: flies_over: True, ha a pálya legalább egyszer az akadály magassága felett halad át az adott x helyen. Egyébként False.</p><p>y_values: Az összes megtalált y érték az x = obstacle_x helyen.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>obstacle_x:</li><li>Az akadály vízszintes távolsága a kiindulási ponttól [m].</li><li>obstacle_y:</li><li>Az akadály magassága [m].</li></ul></section><section><h5>Visszatérési érték</h5><p>flies_over: True, ha a pálya legalább egyszer az akadály magassága felett halad át az adott x helyen. Egyébként False.</p><p>y_values: Az összes megtalált y érték az x = obstacle_x helyen.</p></section><section><h5>Fizikai jelentés</h5><p>Megvizsgálja, hogy a test az x = obstacle_x helyen milyen magasságban halad el. Ha az adott x koordinátánál legalább egyszer az akadály magassága felett jár, akkor az átrepülés lehetséges.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-x_ranges_above_height" data-search="num_kinem x_ranges_above_height megadja, hogy a pálya mely x-intervallumokon van egy adott magasság felett.
+
+fizikai jelentés:
+    megkeresi azokat a pályaszakaszokat, ahol a test magassága legalább
+    `height`. ez például épület feletti átlövésnél hasznos, mert az épület
+    teljes hosszán a pályának az épület teteje felett kell lennie.
+
+paraméterek:
+    height:
+        a vizsgált magasság [m].
+
+visszatérési érték:
+    lista `(x_start, x_end)` párokkal.
+    minden pár azt jelenti, hogy a pálya az adott x-intervallumon
+    legalább `height` magasan halad. azokat az x-intervallumokat adja meg, ahol a pálya egy magasság fölött halad.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">x_ranges_above_height</span>
+          </div>
+          <code class="signature">num_kinem.x_ranges_above_height(self, height)</code>
+        </div>
+        <div class="summary-text">Azokat az x-intervallumokat adja meg, ahol a pálya egy magasság fölött halad.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megadja, hogy a pálya mely x-intervallumokon van egy adott magasság felett.</p><p>Fizikai jelentés: Megkeresi azokat a pályaszakaszokat, ahol a test magassága legalább `height`. Ez például épület feletti átlövésnél hasznos, mert az épület teljes hosszán a pályának az épület teteje felett kell lennie.</p><p>Paraméterek: height: A vizsgált magasság [m].</p><p>Visszatérési érték: Lista `(x_start, x_end)` párokkal. Minden pár azt jelenti, hogy a pálya az adott x-intervallumon legalább `height` magasan halad.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>height:</li><li>A vizsgált magasság [m].</li></ul></section><section><h5>Visszatérési érték</h5><p>Lista `(x_start, x_end)` párokkal. Minden pár azt jelenti, hogy a pálya az adott x-intervallumon legalább `height` magasan halad.</p></section><section><h5>Fizikai jelentés</h5><p>Megkeresi azokat a pályaszakaszokat, ahol a test magassága legalább `height`. Ez például épület feletti átlövésnél hasznos, mert az épület teljes hosszán a pályának az épület teteje felett kell lennie.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-kinetic_energy" data-search="num_kinem kinetic_energy megadja a test mozgási energiáját, állandó és változó tömeg esetén is.
+
+fizikai jelentés:
+    a mozgási energia képlete:
+
+        e_k = 1/2 * m * v^2
+
+    ahol:
+        m = test tömege [kg] (lehet fix szám, vagy időben változó tömb)
+        v = sebesség nagysága [m/s]
+
+paraméterek:
+    tomeg:
+        a test tömege [kg]. lehet egyetlen lebegőpontos szám (állandó tömeg),
+        vagy egy numpy-tömb (változó tömeg, pl. self.m).
+
+    keresett_t:
+        opcionális konkrét időpillanat [s].
+
+        fontos:
+            nem kell megadni a teljes időtömböt, például self.t-t.
+            ha keresett_t nincs megadva (none), akkor a függvény
+            automatikusan kiszámítja a mozgási energiát az összes szimulált
+            időpontra.
+
+        példák:
+            kinetic_energy(0.0075)
+                -&gt; mozgási energia végig fix 0.0075 kg tömeggel
+
+            kinetic_energy(bullet_din.m)
+                -&gt; mozgási energia lépésről lépésre változó tömeggel
+
+            kinetic_energy(bullet_din.m, keresett_t=0.83)
+                -&gt; mozgási energia a 0.83 s időpillanatban (tömeget is interpolál)
+
+visszatérési érték:
+    ha keresett_t nincs megadva:
+        numpy-tömb, amely az összes szimulált időponthoz tartozó
+        mozgási energiát tartalmazza [j].
+
+    ha keresett_t meg van adva:
+        egyetlen lebegőpontos érték, az adott időpillanathoz tartozó
+        mozgási energia [j]. mozgási energiát számít állandó vagy időfüggő tömegre.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">kinetic_energy</span>
+          </div>
+          <code class="signature">num_kinem.kinetic_energy(self, tomeg, keresett_t=None)</code>
+        </div>
+        <div class="summary-text">Mozgási energiát számít állandó vagy időfüggő tömegre.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megadja a test mozgási energiáját, állandó és változó tömeg esetén is.</p><p>Fizikai jelentés: A mozgási energia képlete:</p><p>E_k = 1/2 * m * v^2</p><p>ahol: m = test tömege [kg] (lehet fix szám, vagy időben változó tömb) v = sebesség nagysága [m/s]</p><p>Paraméterek: tomeg: A test tömege [kg]. Lehet egyetlen lebegőpontos szám (állandó tömeg), vagy egy NumPy-tömb (változó tömeg, pl. self.m).</p><p>keresett_t: Opcionális konkrét időpillanat [s].</p><p>Fontos: Nem kell megadni a teljes időtömböt, például self.t-t. Ha keresett_t nincs megadva (None), akkor a függvény automatikusan kiszámítja a mozgási energiát az összes szimulált időpontra.</p><p>Példák: kinetic_energy(0.0075) -&gt; mozgási energia végig fix 0.0075 kg tömeggel</p><p>kinetic_energy(bullet_din.m) -&gt; mozgási energia lépésről lépésre változó tömeggel</p><p>kinetic_energy(bullet_din.m, keresett_t=0.83) -&gt; mozgási energia a 0.83 s időpillanatban (tömeget is interpolál)</p><p>Visszatérési érték: Ha keresett_t nincs megadva: NumPy-tömb, amely az összes szimulált időponthoz tartozó mozgási energiát tartalmazza [J].</p><p>Ha keresett_t meg van adva: Egyetlen lebegőpontos érték, az adott időpillanathoz tartozó mozgási energia [J].</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>tomeg:</li><li>A test tömege [kg]. Lehet egyetlen lebegőpontos szám (állandó tömeg),</li><li>vagy egy NumPy-tömb (változó tömeg, pl. self.m).</li><li>keresett_t:</li><li>Opcionális konkrét időpillanat [s].</li><li>Fontos:</li><li>Nem kell megadni a teljes időtömböt, például self.t-t.</li><li>Ha keresett_t nincs megadva (None), akkor a függvény</li><li>automatikusan kiszámítja a mozgási energiát az összes szimulált</li><li>időpontra.</li><li>Példák:</li><li>kinetic_energy(0.0075)</li><li>-&gt; mozgási energia végig fix 0.0075 kg tömeggel</li><li>kinetic_energy(bullet_din.m)</li><li>-&gt; mozgási energia lépésről lépésre változó tömeggel</li><li>kinetic_energy(bullet_din.m, keresett_t=0.83)</li><li>-&gt; mozgási energia a 0.83 s időpillanatban (tömeget is interpolál)</li></ul></section><section><h5>Visszatérési érték</h5><p>Ha keresett_t nincs megadva: NumPy-tömb, amely az összes szimulált időponthoz tartozó mozgási energiát tartalmazza [J].</p><p>Ha keresett_t meg van adva: Egyetlen lebegőpontos érték, az adott időpillanathoz tartozó mozgási energia [J].</p></section><section><h5>Fizikai jelentés</h5><p>A mozgási energia képlete:</p><p>E_k = 1/2 * m * v^2</p><p>ahol: m = test tömege [kg] (lehet fix szám, vagy időben változó tömb) v = sebesség nagysága [m/s]</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-kinetic_energy_constant_m" data-search="num_kinem kinetic_energy_constant_m megadja a test mozgási energiáját.
+
+fizikai jelentés:
+    a mozgási energia képlete:
+
+        e_k = 1/2 * m * v^2
+
+    ahol:
+        m = test tömege [kg]
+        v = sebesség nagysága [m/s]
+
+paraméterek:
+    tomeg:
+        a test tömege [kg].
+
+    keresett_t:
+        opcionális konkrét időpillanat [s].
+
+        fontos:
+            nem kell megadni a teljes időtömböt, például self.t-t vagy
+            bullet_din.t-t.
+
+            ha keresett_t nincs megadva, vagyis none marad, akkor a függvény
+            automatikusan kiszámítja a mozgási energiát az összes szimulált
+            időpontra.
+
+        példák:
+            kinetic_energy(tomeg)
+                -&gt; mozgási energia az egész szimulált pályára
+
+            kinetic_energy(tomeg, keresett_t=0.83)
+                -&gt; mozgási energia a 0.83 s időpillanatban
+
+visszatérési érték:
+    ha keresett_t nincs megadva:
+        numpy-tömb, amely az összes szimulált időponthoz tartozó
+        mozgási energiát tartalmazza [j].
+
+    ha keresett_t meg van adva:
+        egyetlen lebegőpontos érték, az adott időpillanathoz tartozó
+        mozgási energia [j]. mozgási energiát számít állandó tömegre egyszerűsített formában.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Lekérdezés és helper</span>
+            <span class="item-name">kinetic_energy_constant_m</span>
+          </div>
+          <code class="signature">num_kinem.kinetic_energy_constant_m(self, tomeg, keresett_t=None)</code>
+        </div>
+        <div class="summary-text">Mozgási energiát számít állandó tömegre egyszerűsített formában.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Megadja a test mozgási energiáját.</p><p>Fizikai jelentés: A mozgási energia képlete:</p><p>E_k = 1/2 * m * v^2</p><p>ahol: m = test tömege [kg] v = sebesség nagysága [m/s]</p><p>Paraméterek: tomeg: A test tömege [kg].</p><p>keresett_t: Opcionális konkrét időpillanat [s].</p><p>Fontos: Nem kell megadni a teljes időtömböt, például self.t-t vagy bullet_din.t-t.</p><p>Ha keresett_t nincs megadva, vagyis None marad, akkor a függvény automatikusan kiszámítja a mozgási energiát az összes szimulált időpontra.</p><p>Példák: kinetic_energy(tomeg) -&gt; mozgási energia az egész szimulált pályára</p><p>kinetic_energy(tomeg, keresett_t=0.83) -&gt; mozgási energia a 0.83 s időpillanatban</p><p>Visszatérési érték: Ha keresett_t nincs megadva: NumPy-tömb, amely az összes szimulált időponthoz tartozó mozgási energiát tartalmazza [J].</p><p>Ha keresett_t meg van adva: Egyetlen lebegőpontos érték, az adott időpillanathoz tartozó mozgási energia [J].</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>tomeg:</li><li>A test tömege [kg].</li><li>keresett_t:</li><li>Opcionális konkrét időpillanat [s].</li><li>Fontos:</li><li>Nem kell megadni a teljes időtömböt, például self.t-t vagy</li><li>bullet_din.t-t.</li><li>Ha keresett_t nincs megadva, vagyis None marad, akkor a függvény</li><li>automatikusan kiszámítja a mozgási energiát az összes szimulált</li><li>időpontra.</li><li>Példák:</li><li>kinetic_energy(tomeg)</li><li>-&gt; mozgási energia az egész szimulált pályára</li><li>kinetic_energy(tomeg, keresett_t=0.83)</li><li>-&gt; mozgási energia a 0.83 s időpillanatban</li></ul></section><section><h5>Visszatérési érték</h5><p>Ha keresett_t nincs megadva: NumPy-tömb, amely az összes szimulált időponthoz tartozó mozgási energiát tartalmazza [J].</p><p>Ha keresett_t meg van adva: Egyetlen lebegőpontos érték, az adott időpillanathoz tartozó mozgási energia [J].</p></section><section><h5>Fizikai jelentés</h5><p>A mozgási energia képlete:</p><p>E_k = 1/2 * m * v^2</p><p>ahol: m = test tömege [kg] v = sebesség nagysága [m/s]</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Ábrázolás</h4>
+    <details class="api-item" id="num_kinem-plot_simple" data-search="num_kinem plot_simple a `plot_list` tartalmának ábrázolása az idő függvényében.
+
+fizikai jelentés:
+    tetszőleges, időhöz tartozó mennyiségek gyors szemléltetésére
+    szolgál. például lehet vele koordinátát, sebességkomponenst,
+    gyorsulást vagy számított segédmennyiséget ábrázolni.
+
+paraméterek:
+    plot_list: az ábrázolandó adatsorok listája. minden elemének az
+        objektum `t` tömbjével kompatibilis hosszúnak kell lennie.
+    figsize: a matplotlib ábra mérete.
+    tlimits: opcionális időintervallum az ábra vízszintes tengelyére.
+        ha `none`, a teljes időtartomány látszik.
+    figname: opcionális fájlnév. ha nem üres sztring, az ábrát ebbe a
+        fájlba menti.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a függvény grafikont készít, és
+    szükség esetén fájlba menti azt. egyszerű időfüggő ábrákat rajzol egy vagy több mennyiségről.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Ábrázolás</span>
+            <span class="item-name">plot_simple</span>
+          </div>
+          <code class="signature">num_kinem.plot_simple(self, plot_list, figsize=(10, 5), tlimits=None, figname=&#x27;&#x27;)</code>
+        </div>
+        <div class="summary-text">Egyszerű időfüggő ábrákat rajzol egy vagy több mennyiségről.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A `plot_list` tartalmának ábrázolása az idő függvényében.</p><p>Fizikai jelentés: Tetszőleges, időhöz tartozó mennyiségek gyors szemléltetésére szolgál. Például lehet vele koordinátát, sebességkomponenst, gyorsulást vagy számított segédmennyiséget ábrázolni.</p><p>Paraméterek: plot_list: Az ábrázolandó adatsorok listája. Minden elemének az objektum `t` tömbjével kompatibilis hosszúnak kell lennie. figsize: A matplotlib ábra mérete. tlimits: Opcionális időintervallum az ábra vízszintes tengelyére. Ha `None`, a teljes időtartomány látszik. figname: Opcionális fájlnév. Ha nem üres sztring, az ábrát ebbe a fájlba menti.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A függvény grafikont készít, és szükség esetén fájlba menti azt.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>plot_list: Az ábrázolandó adatsorok listája. Minden elemének az</li><li>objektum `t` tömbjével kompatibilis hosszúnak kell lennie.</li><li>figsize: A matplotlib ábra mérete.</li><li>tlimits: Opcionális időintervallum az ábra vízszintes tengelyére.</li><li>Ha `None`, a teljes időtartomány látszik.</li><li>figname: Opcionális fájlnév. Ha nem üres sztring, az ábrát ebbe a</li><li>fájlba menti.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A függvény grafikont készít, és szükség esetén fájlba menti azt.</p></section><section><h5>Fizikai jelentés</h5><p>Tetszőleges, időhöz tartozó mennyiségek gyors szemléltetésére szolgál. Például lehet vele koordinátát, sebességkomponenst, gyorsulást vagy számított segédmennyiséget ábrázolni.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-plot_rva_coord" data-search="num_kinem plot_rva_coord hely-, sebesség- és gyorsuláskomponensek 1-1 grafikonon.
+
+fizikai jelentés:
+    egyszerre mutatja meg, hogyan változnak a mozgás alapvető
+    kinematikai mennyiségei az időben. segít ellenőrizni, hogy a
+    helyből számított sebesség és gyorsulás fizikailag értelmes-e.
+
+paraméterek:
+    figsize: a matplotlib ábra mérete.
+    tlimits: opcionális időintervallum a grafikonok vízszintes
+        tengelyére. ha `none`, a teljes időtartomány látszik.
+    figname: opcionális fájlnév. ha nem üres sztring, az ábrát ebbe a
+        fájlba menti.
+
+visszatérési érték:
+    nincs külön visszatérési érték. három egymás alatti grafikont
+    rajzol a `r`, `v` és `a` komponenseiről. a hely-, sebesség- és gyorsuláskomponenseket rajzolja ki.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Ábrázolás</span>
+            <span class="item-name">plot_rva_coord</span>
+          </div>
+          <code class="signature">num_kinem.plot_rva_coord(self, figsize=(10, 10), tlimits=None, figname=&#x27;&#x27;)</code>
+        </div>
+        <div class="summary-text">A hely-, sebesség- és gyorsuláskomponenseket rajzolja ki.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Hely-, sebesség- és gyorsuláskomponensek 1-1 grafikonon.</p><p>Fizikai jelentés: Egyszerre mutatja meg, hogyan változnak a mozgás alapvető kinematikai mennyiségei az időben. Segít ellenőrizni, hogy a helyből számított sebesség és gyorsulás fizikailag értelmes-e.</p><p>Paraméterek: figsize: A matplotlib ábra mérete. tlimits: Opcionális időintervallum a grafikonok vízszintes tengelyére. Ha `None`, a teljes időtartomány látszik. figname: Opcionális fájlnév. Ha nem üres sztring, az ábrát ebbe a fájlba menti.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Három egymás alatti grafikont rajzol a `r`, `v` és `a` komponenseiről.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>figsize: A matplotlib ábra mérete.</li><li>tlimits: Opcionális időintervallum a grafikonok vízszintes</li><li>tengelyére. Ha `None`, a teljes időtartomány látszik.</li><li>figname: Opcionális fájlnév. Ha nem üres sztring, az ábrát ebbe a</li><li>fájlba menti.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Három egymás alatti grafikont rajzol a `r`, `v` és `a` komponenseiről.</p></section><section><h5>Fizikai jelentés</h5><p>Egyszerre mutatja meg, hogyan változnak a mozgás alapvető kinematikai mennyiségei az időben. Segít ellenőrizni, hogy a helyből számított sebesség és gyorsulás fizikailag értelmes-e.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-plot_rcomp" data-search="num_kinem plot_rcomp helykoordináták közül a kiválasztott párok ábrázolása.
+
+fizikai jelentés:
+    a test pályáját mutatja meg kiválasztott koordinátasíkokban,
+    például az `x-y` síkon. ez a grafikon nem időgrafikon, hanem a
+    mozgás geometriai alakját szemlélteti.
+
+paraméterek:
+    figsize: a matplotlib ábra mérete.
+    coords: koordinátapárok listája. például `[[0, 1]]` az `x-y`
+        pályát rajzolja, `[[0, 2]]` pedig az `x-z` vetületet.
+    equal: ha igaz, az ábrán a két tengely skálázása azonos lesz, így
+        a pálya alakja geometriailag nem torzul.
+    figname: opcionális fájlnév. ha nem üres sztring, az ábrát ebbe a
+        fájlba menti.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a függvény pályagrafikont vagy
+    pályagrafikonokat készít. síkbeli pályagörbét rajzol koordinátakomponensekből.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Ábrázolás</span>
+            <span class="item-name">plot_rcomp</span>
+          </div>
+          <code class="signature">num_kinem.plot_rcomp(self, figsize=(10, 10), coords=[[0, 1]], equal=True, figname=&#x27;&#x27;)</code>
+        </div>
+        <div class="summary-text">Síkbeli pályagörbét rajzol koordinátakomponensekből.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Helykoordináták közül a kiválasztott párok ábrázolása.</p><p>Fizikai jelentés: A test pályáját mutatja meg kiválasztott koordinátasíkokban, például az `x-y` síkon. Ez a grafikon nem időgrafikon, hanem a mozgás geometriai alakját szemlélteti.</p><p>Paraméterek: figsize: A matplotlib ábra mérete. coords: Koordinátapárok listája. Például `[[0, 1]]` az `x-y` pályát rajzolja, `[[0, 2]]` pedig az `x-z` vetületet. equal: Ha igaz, az ábrán a két tengely skálázása azonos lesz, így a pálya alakja geometriailag nem torzul. figname: Opcionális fájlnév. Ha nem üres sztring, az ábrát ebbe a fájlba menti.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A függvény pályagrafikont vagy pályagrafikonokat készít.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>figsize: A matplotlib ábra mérete.</li><li>coords: Koordinátapárok listája. Például `[[0, 1]]` az `x-y`</li><li>pályát rajzolja, `[[0, 2]]` pedig az `x-z` vetületet.</li><li>equal: Ha igaz, az ábrán a két tengely skálázása azonos lesz, így</li><li>a pálya alakja geometriailag nem torzul.</li><li>figname: Opcionális fájlnév. Ha nem üres sztring, az ábrát ebbe a</li><li>fájlba menti.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A függvény pályagrafikont vagy pályagrafikonokat készít.</p></section><section><h5>Fizikai jelentés</h5><p>A test pályáját mutatja meg kiválasztott koordinátasíkokban, például az `x-y` síkon. Ez a grafikon nem időgrafikon, hanem a mozgás geometriai alakját szemlélteti.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Property-k</h4>
+    <details class="api-item" id="num_kinem-Ndim" data-search="num_kinem ndim a mozgás dimenziószáma.
+
+fizikai jelentés:
+    megadja, hány koordinátával írjuk le a test helyét, sebességét és
+    gyorsulását. például `2` síkbeli, `3` térbeli mozgást jelent.
+
+visszatérési érték:
+    egész szám, a vektoros mennyiségek komponenseinek száma.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">Ndim</span>
+          </div>
+          <code class="signature">num_kinem.Ndim(self) -&gt; int</code>
+        </div>
+        <div class="summary-text">A mozgás dimenziószáma.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A mozgás dimenziószáma.</p><p>Fizikai jelentés: Megadja, hány koordinátával írjuk le a test helyét, sebességét és gyorsulását. Például `2` síkbeli, `3` térbeli mozgást jelent.</p><p>Visszatérési érték: Egész szám, a vektoros mennyiségek komponenseinek száma.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egész szám, a vektoros mennyiségek komponenseinek száma.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja, hány koordinátával írjuk le a test helyét, sebességét és gyorsulását. Például `2` síkbeli, `3` térbeli mozgást jelent.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-t_start" data-search="num_kinem t_start a vizsgált időtartomány kezdő időpontja.
+
+fizikai jelentés:
+    az az időpont, amelytől a mozgás leírását vagy numerikus számítását
+    elkezdjük.
+
+visszatérési érték:
+    számérték, a kezdő időpont a választott időegységben.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">t_start</span>
+          </div>
+          <code class="signature">num_kinem.t_start(self) -&gt; float</code>
+        </div>
+        <div class="summary-text">A vizsgált időtartomány kezdő időpontja.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A vizsgált időtartomány kezdő időpontja.</p><p>Fizikai jelentés: Az az időpont, amelytől a mozgás leírását vagy numerikus számítását elkezdjük.</p><p>Visszatérési érték: Számérték, a kezdő időpont a választott időegységben.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Számérték, a kezdő időpont a választott időegységben.</p></section><section><h5>Fizikai jelentés</h5><p>Az az időpont, amelytől a mozgás leírását vagy numerikus számítását elkezdjük.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-t_end" data-search="num_kinem t_end a vizsgált időtartomány végső időpontja vagy felső határa.
+
+fizikai jelentés:
+    az az időpont, ameddig a mozgást vizsgáljuk. egyenletes időrácsnál
+    az `np.arange` miatt ez nem feltétlenül szerepel pontosan a `t`
+    tömbben.
+
+visszatérési érték:
+    számérték, a végidő a választott időegységben.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">t_end</span>
+          </div>
+          <code class="signature">num_kinem.t_end(self) -&gt; float</code>
+        </div>
+        <div class="summary-text">A vizsgált időtartomány végső időpontja vagy felső határa.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A vizsgált időtartomány végső időpontja vagy felső határa.</p><p>Fizikai jelentés: Az az időpont, ameddig a mozgást vizsgáljuk. Egyenletes időrácsnál az `np.arange` miatt ez nem feltétlenül szerepel pontosan a `t` tömbben.</p><p>Visszatérési érték: Számérték, a végidő a választott időegységben.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Számérték, a végidő a választott időegységben.</p></section><section><h5>Fizikai jelentés</h5><p>Az az időpont, ameddig a mozgást vizsgáljuk. Egyenletes időrácsnál az `np.arange` miatt ez nem feltétlenül szerepel pontosan a `t` tömbben.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-delta_t" data-search="num_kinem delta_t az időlépés nagysága.
+
+fizikai jelentés:
+    két szomszédos időpont közötti időtartam. kisebb értéke finomabb
+    numerikus felbontást ad, de több számítási pontot eredményez.
+
+visszatérési érték:
+    számérték, az időlépés a választott időegységben.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">delta_t</span>
+          </div>
+          <code class="signature">num_kinem.delta_t(self) -&gt; float</code>
+        </div>
+        <div class="summary-text">Az időlépés nagysága.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az időlépés nagysága.</p><p>Fizikai jelentés: Két szomszédos időpont közötti időtartam. Kisebb értéke finomabb numerikus felbontást ad, de több számítási pontot eredményez.</p><p>Visszatérési érték: Számérték, az időlépés a választott időegységben.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Számérték, az időlépés a választott időegységben.</p></section><section><h5>Fizikai jelentés</h5><p>Két szomszédos időpont közötti időtartam. Kisebb értéke finomabb numerikus felbontást ad, de több számítási pontot eredményez.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-t" data-search="num_kinem t az időpontok tömbje.
+
+fizikai jelentés:
+    azok az időértékek, amelyekhez a hely-, sebesség- és gyorsulásadatok
+    tartoznak.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb az időpontokkal.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">t</span>
+          </div>
+          <code class="signature">num_kinem.t(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">Az időpontok tömbje.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az időpontok tömbje.</p><p>Fizikai jelentés: Azok az időértékek, amelyekhez a hely-, sebesség- és gyorsulásadatok tartoznak.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb az időpontokkal.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb az időpontokkal.</p></section><section><h5>Fizikai jelentés</h5><p>Azok az időértékek, amelyekhez a hely-, sebesség- és gyorsulásadatok tartoznak.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-r" data-search="num_kinem r a helyvektorok táblázata.
+
+fizikai jelentés:
+    megadja a test helyét minden tárolt időpontban. a sorok az
+    időpontokhoz, az oszlopok a koordinátakomponensekhez tartoznak.
+
+struktúra (2d mozgás esetén):
+    r = [[x0, y0],   ← 0. időpont helyvektora
+        [x1, y1],   ← 1. időpont helyvektora
+        [x2, y2],   ← 2. időpont helyvektora
+        ...
+        [xn, yn]]   ← n. (utolsó) időpont helyvektora
+
+    shape: (n, 2), ahol n a tárolt időpontok száma
+
+visszatérési érték:
+    kétdimenziós numpy-tömb, amelynek r[i, :] sora az i. időponthoz
+    tartozó helyvektor.
+
+példák:
+    összes x koordináta (vízszintes mozgás):
+        obj.r[:, 0]
+
+    összes y koordináta (magasság):
+        obj.r[:, 1]
+
+    az utolsó időpont helyvektora (hol állt meg a test):
+        obj.r[-1]          → [xn, yn]
+
+    dobás távolsága (utolsó pont távolsága az origótól):
+        vect_abs(obj.r[-1][none, :])[0]
+
+    legnagyobb magasság (y koordináta maximuma):
+        obj.r[:, 1].max()">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">r</span>
+          </div>
+          <code class="signature">num_kinem.r(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A helyvektorok táblázata.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A helyvektorok táblázata.</p><p>Fizikai jelentés: Megadja a test helyét minden tárolt időpontban. A sorok az időpontokhoz, az oszlopok a koordinátakomponensekhez tartoznak.</p><p>Struktúra (2D mozgás esetén): r = [[x0, y0], ← 0. időpont helyvektora [x1, y1], ← 1. időpont helyvektora [x2, y2], ← 2. időpont helyvektora ... [xN, yN]] ← N. (utolsó) időpont helyvektora</p><p>shape: (N, 2), ahol N a tárolt időpontok száma</p><p>Visszatérési érték: Kétdimenziós NumPy-tömb, amelynek r[i, :] sora az i. időponthoz tartozó helyvektor.</p><p>Példák: Összes x koordináta (vízszintes mozgás): obj.r[:, 0]</p><p>Összes y koordináta (magasság): obj.r[:, 1]</p><p>Az utolsó időpont helyvektora (hol állt meg a test): obj.r[-1] → [xN, yN]</p><p>Dobás távolsága (utolsó pont távolsága az origótól): vect_abs(obj.r[-1][None, :])[0]</p><p>Legnagyobb magasság (y koordináta maximuma): obj.r[:, 1].max()</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Kétdimenziós NumPy-tömb, amelynek r[i, :] sora az i. időponthoz tartozó helyvektor.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a test helyét minden tárolt időpontban. A sorok az időpontokhoz, az oszlopok a koordinátakomponensekhez tartoznak.</p><p>Struktúra (2D mozgás esetén): r = [[x0, y0], ← 0. időpont helyvektora [x1, y1], ← 1. időpont helyvektora [x2, y2], ← 2. időpont helyvektora ... [xN, yN]] ← N. (utolsó) időpont helyvektora</p><p>shape: (N, 2), ahol N a tárolt időpontok száma</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-v_abs" data-search="num_kinem v_abs a sebességvektorok nagysága minden időpontban.
+
+fizikai jelentés:
+    megadja a test sebességének abszolút értékét, vagyis a sebességnagyságot
+    minden tárolt időpontban. 2d mozgás esetén:
+
+        v_abs = sqrt(v_x² + v_y²)
+
+    ez akkor hasznos, ha nem a sebesség irányára, hanem csak arra vagyunk
+    kíváncsiak, hogy a test mekkora sebességgel mozog.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb. az `i`. eleme az `i`. időponthoz tartozó
+    sebességvektor nagysága. sebességnagyság, vagyis a haladás pillanatnyi tempója.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">v_abs</span>
+          </div>
+          <code class="signature">num_kinem.v_abs(self)</code>
+        </div>
+        <div class="summary-text">Sebességnagyság, vagyis a haladás pillanatnyi tempója.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A sebességvektorok nagysága minden időpontban.</p><p>Fizikai jelentés: Megadja a test sebességének abszolút értékét, vagyis a sebességnagyságot minden tárolt időpontban. 2D mozgás esetén:</p><p>v_abs = sqrt(v_x² + v_y²)</p><p>Ez akkor hasznos, ha nem a sebesség irányára, hanem csak arra vagyunk kíváncsiak, hogy a test mekkora sebességgel mozog.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb. Az `i`. eleme az `i`. időponthoz tartozó sebességvektor nagysága.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb. Az `i`. eleme az `i`. időponthoz tartozó sebességvektor nagysága.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a test sebességének abszolút értékét, vagyis a sebességnagyságot minden tárolt időpontban. 2D mozgás esetén:</p><p>v_abs = sqrt(v_x² + v_y²)</p><p>Ez akkor hasznos, ha nem a sebesség irányára, hanem csak arra vagyunk kíváncsiak, hogy a test mekkora sebességgel mozog.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-r_x" data-search="num_kinem r_x az x koordináták tömbje az összes időpontra. az x koordináták gyors elérése a teljes helyvektor-sorozatból.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">r_x</span>
+          </div>
+          <code class="signature">num_kinem.r_x(self)</code>
+        </div>
+        <div class="summary-text">Az x koordináták gyors elérése a teljes helyvektor-sorozatból.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az x koordináták tömbje az összes időpontra.</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-r_y" data-search="num_kinem r_y az y koordináták tömbje az összes időpontra. az y koordináták gyors elérése a teljes helyvektor-sorozatból.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">r_y</span>
+          </div>
+          <code class="signature">num_kinem.r_y(self)</code>
+        </div>
+        <div class="summary-text">Az y koordináták gyors elérése a teljes helyvektor-sorozatból.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az y koordináták tömbje az összes időpontra.</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-dist" data-search="num_kinem dist az objektum origótól való távolsága minden időpontban. az origótól mért pillanatnyi távolság.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">dist</span>
+          </div>
+          <code class="signature">num_kinem.dist(self)</code>
+        </div>
+        <div class="summary-text">Az origótól mért pillanatnyi távolság.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az objektum origótól való távolsága minden időpontban.</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-max_height" data-search="num_kinem max_height a pálya során elért legnagyobb magasság. a pálya legnagyobb y koordinátája.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">max_height</span>
+          </div>
+          <code class="signature">num_kinem.max_height(self)</code>
+        </div>
+        <div class="summary-text">A pálya legnagyobb y koordinátája.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A pálya során elért legnagyobb magasság.</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-final_dist" data-search="num_kinem final_dist az objektum végső távolsága az origótól (utolsó tárolt időpont). a végpont origótól mért távolsága.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">final_dist</span>
+          </div>
+          <code class="signature">num_kinem.final_dist(self)</code>
+        </div>
+        <div class="summary-text">A végpont origótól mért távolsága.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az objektum végső távolsága az origótól (utolsó tárolt időpont).</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-v" data-search="num_kinem v a sebességvektorok táblázata.
+
+fizikai jelentés:
+    megadja a test pillanatnyi sebességét minden tárolt időpontban.
+    a sebesség a hely idő szerinti deriváltja.
+
+visszatérési érték:
+    kétdimenziós numpy-tömb, amelynek `v[i, :]` sora az `i`. időponthoz
+    tartozó sebességvektor.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">v</span>
+          </div>
+          <code class="signature">num_kinem.v(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A sebességvektorok táblázata.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A sebességvektorok táblázata.</p><p>Fizikai jelentés: Megadja a test pillanatnyi sebességét minden tárolt időpontban. A sebesség a hely idő szerinti deriváltja.</p><p>Visszatérési érték: Kétdimenziós NumPy-tömb, amelynek `v[i, :]` sora az `i`. időponthoz tartozó sebességvektor.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Kétdimenziós NumPy-tömb, amelynek `v[i, :]` sora az `i`. időponthoz tartozó sebességvektor.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a test pillanatnyi sebességét minden tárolt időpontban. A sebesség a hely idő szerinti deriváltja.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-v_x" data-search="num_kinem v_x az x irányú sebességkomponensek tömbje az összes időpontra. a sebesség x komponense.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">v_x</span>
+          </div>
+          <code class="signature">num_kinem.v_x(self)</code>
+        </div>
+        <div class="summary-text">A sebesség x komponense.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az x irányú sebességkomponensek tömbje az összes időpontra.</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-v_y" data-search="num_kinem v_y az y irányú sebességkomponensek tömbje az összes időpontra. a sebesség y komponense.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">v_y</span>
+          </div>
+          <code class="signature">num_kinem.v_y(self)</code>
+        </div>
+        <div class="summary-text">A sebesség y komponense.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az y irányú sebességkomponensek tömbje az összes időpontra.</p>
+        </section>
+        
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a" data-search="num_kinem a a gyorsulásvektorok táblázata.
+
+fizikai jelentés:
+    megadja a test pillanatnyi gyorsulását minden tárolt időpontban.
+    a gyorsulás a sebesség idő szerinti deriváltja.
+
+visszatérési érték:
+    kétdimenziós numpy-tömb, amelynek `a[i, :]` sora az `i`. időponthoz
+    tartozó gyorsulásvektor.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a</span>
+          </div>
+          <code class="signature">num_kinem.a(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A gyorsulásvektorok táblázata.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A gyorsulásvektorok táblázata.</p><p>Fizikai jelentés: Megadja a test pillanatnyi gyorsulását minden tárolt időpontban. A gyorsulás a sebesség idő szerinti deriváltja.</p><p>Visszatérési érték: Kétdimenziós NumPy-tömb, amelynek `a[i, :]` sora az `i`. időponthoz tartozó gyorsulásvektor.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Kétdimenziós NumPy-tömb, amelynek `a[i, :]` sora az `i`. időponthoz tartozó gyorsulásvektor.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a test pillanatnyi gyorsulását minden tárolt időpontban. A gyorsulás a sebesség idő szerinti deriváltja.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a_abs" data-search="num_kinem a_abs a gyorsulásvektorok nagysága minden időpontban.
+
+fizikai jelentés:
+    megadja a test gyorsulásának abszolút értékét, vagyis a
+    gyorsulás nagyságát minden tárolt időpontban.
+
+    2d mozgás esetén:
+        a_abs = sqrt(a_x² + a_y²)
+
+    ez a teljes gyorsulás nagysága, nem pedig a tangenciális vagy
+    centripetális gyorsulás külön komponense.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb. az `i`. eleme az `i`. időponthoz tartozó
+    gyorsulásvektor nagysága. gyorsulásnagyság, iránytól függetlenül.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_abs</span>
+          </div>
+          <code class="signature">num_kinem.a_abs(self)</code>
+        </div>
+        <div class="summary-text">Gyorsulásnagyság, iránytól függetlenül.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A gyorsulásvektorok nagysága minden időpontban.</p><p>Fizikai jelentés: Megadja a test gyorsulásának abszolút értékét, vagyis a gyorsulás nagyságát minden tárolt időpontban.</p><p>2D mozgás esetén: a_abs = sqrt(a_x² + a_y²)</p><p>Ez a teljes gyorsulás nagysága, nem pedig a tangenciális vagy centripetális gyorsulás külön komponense.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb. Az `i`. eleme az `i`. időponthoz tartozó gyorsulásvektor nagysága.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb. Az `i`. eleme az `i`. időponthoz tartozó gyorsulásvektor nagysága.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a test gyorsulásának abszolút értékét, vagyis a gyorsulás nagyságát minden tárolt időpontban.</p><p>2D mozgás esetén: a_abs = sqrt(a_x² + a_y²)</p><p>Ez a teljes gyorsulás nagysága, nem pedig a tangenciális vagy centripetális gyorsulás külön komponense.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-delta_r" data-search="num_kinem delta_r szomszédos időpontok közötti elmozdulásvektorok.
+
+fizikai jelentés:
+    a `delta_r[i, :]` vektor azt mutatja, mennyit mozdult el a test a
+    `t[i]` és `t[i+1]` időpontok között.
+
+visszatérési érték:
+    kétdimenziós numpy-tömb az egymást követő helyvektorok
+    különbségeivel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">delta_r</span>
+          </div>
+          <code class="signature">num_kinem.delta_r(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">Szomszédos időpontok közötti elmozdulásvektorok.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Szomszédos időpontok közötti elmozdulásvektorok.</p><p>Fizikai jelentés: A `delta_r[i, :]` vektor azt mutatja, mennyit mozdult el a test a `t[i]` és `t[i+1]` időpontok között.</p><p>Visszatérési érték: Kétdimenziós NumPy-tömb az egymást követő helyvektorok különbségeivel.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Kétdimenziós NumPy-tömb az egymást követő helyvektorok különbségeivel.</p></section><section><h5>Fizikai jelentés</h5><p>A `delta_r[i, :]` vektor azt mutatja, mennyit mozdult el a test a `t[i]` és `t[i+1]` időpontok között.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-delta_r_abs" data-search="num_kinem delta_r_abs szomszédos időpontok közötti elmozdulások nagysága.
+
+fizikai jelentés:
+    a kis időlépések alatt megtett útszakaszok hosszát adja meg.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb, amelynek elemei az egymást követő
+    elmozdulásvektorok hossza.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">delta_r_abs</span>
+          </div>
+          <code class="signature">num_kinem.delta_r_abs(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">Szomszédos időpontok közötti elmozdulások nagysága.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Szomszédos időpontok közötti elmozdulások nagysága.</p><p>Fizikai jelentés: A kis időlépések alatt megtett útszakaszok hosszát adja meg.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb, amelynek elemei az egymást követő elmozdulásvektorok hossza.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb, amelynek elemei az egymást követő elmozdulásvektorok hossza.</p></section><section><h5>Fizikai jelentés</h5><p>A kis időlépések alatt megtett útszakaszok hosszát adja meg.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-pathlength" data-search="num_kinem pathlength az indulástól számított megtett út.
+
+fizikai jelentés:
+    a pálya mentén megtett teljes út az egyes időpontokig. ez általában
+    nem azonos az origótól mért távolsággal.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb. a `pathlength[i]` érték az indulástól a
+    `t[i]` időpontig megtett utat adja. az indulástól összegzett pályahossz.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">pathlength</span>
+          </div>
+          <code class="signature">num_kinem.pathlength(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">Az indulástól összegzett pályahossz.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az indulástól számított megtett út.</p><p>Fizikai jelentés: A pálya mentén megtett teljes út az egyes időpontokig. Ez általában nem azonos az origótól mért távolsággal.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb. A `pathlength[i]` érték az indulástól a `t[i]` időpontig megtett utat adja.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb. A `pathlength[i]` érték az indulástól a `t[i]` időpontig megtett utat adja.</p></section><section><h5>Fizikai jelentés</h5><p>A pálya mentén megtett teljes út az egyes időpontokig. Ez általában nem azonos az origótól mért távolsággal.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a_t_abs" data-search="num_kinem a_t_abs a tangenciális gyorsulás előjeles nagysága.
+
+fizikai jelentés:
+    a gyorsulás sebesség irányába eső skalár komponense, vagyis
+    megmutatja, hogy a test a pálya mentén gyorsul-e vagy lassul-e.
+
+    értelmezés:
+        - a_t_abs &gt; 0: a tangenciális gyorsulás a sebességgel egyező
+        irányba mutat → a sebesség nagysága nő (gyorsul)
+        - a_t_abs &lt; 0: a tangenciális gyorsulás a sebességgel ellentétes
+        irányba mutat → a sebesség nagysága csökken (lassul)
+        - a_t_abs = 0: nincs tangenciális gyorsulás → a sebesség
+        nagysága pillanatnyi nem változik
+
+    kapcsolat más attribútumokkal:
+        - a_t_abs = dot(a, e_v), ahol e_v a sebesség irányú egységvektor
+        - a_t = a_t_abs * e_v  (a tangenciális gyorsulásvektor)
+        - a_t_magnitude = |a_t_abs|  (előjel nélküli nagysága)
+
+visszatérési érték:
+    egy dimenziós numpy-tömb, shape: (n,), ahol n az időpontok száma.
+    az i. eleme az i. időponthoz tartozó tangenciális gyorsulás
+    előjeles nagysága [m/s²]. előjeles tangenciális gyorsulás; negatív érték lassulást jelent.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_t_abs</span>
+          </div>
+          <code class="signature">num_kinem.a_t_abs(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">Előjeles tangenciális gyorsulás; negatív érték lassulást jelent.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A tangenciális gyorsulás előjeles nagysága.</p><p>Fizikai jelentés: A gyorsulás sebesség irányába eső skalár komponense, vagyis megmutatja, hogy a test a pálya mentén gyorsul-e vagy lassul-e.</p><p>Értelmezés: - a_t_abs &gt; 0: a tangenciális gyorsulás a sebességgel egyező irányba mutat → a sebesség nagysága nő (gyorsul) - a_t_abs &lt; 0: a tangenciális gyorsulás a sebességgel ellentétes irányba mutat → a sebesség nagysága csökken (lassul) - a_t_abs = 0: nincs tangenciális gyorsulás → a sebesség nagysága pillanatnyi nem változik</p><p>Kapcsolat más attribútumokkal: - a_t_abs = dot(a, e_v), ahol e_v a sebesség irányú egységvektor - a_t = a_t_abs * e_v (a tangenciális gyorsulásvektor) - a_t_magnitude = |a_t_abs| (előjel nélküli nagysága)</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb, shape: (N,), ahol N az időpontok száma. Az i. eleme az i. időponthoz tartozó tangenciális gyorsulás előjeles nagysága [m/s²].</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb, shape: (N,), ahol N az időpontok száma. Az i. eleme az i. időponthoz tartozó tangenciális gyorsulás előjeles nagysága [m/s²].</p></section><section><h5>Fizikai jelentés</h5><p>A gyorsulás sebesség irányába eső skalár komponense, vagyis megmutatja, hogy a test a pálya mentén gyorsul-e vagy lassul-e.</p><p>Értelmezés: - a_t_abs &gt; 0: a tangenciális gyorsulás a sebességgel egyező irányba mutat → a sebesség nagysága nő (gyorsul) - a_t_abs &lt; 0: a tangenciális gyorsulás a sebességgel ellentétes irányba mutat → a sebesség nagysága csökken (lassul) - a_t_abs = 0: nincs tangenciális gyorsulás → a sebesség nagysága pillanatnyi nem változik</p><p>Kapcsolat más attribútumokkal: - a_t_abs = dot(a, e_v), ahol e_v a sebesség irányú egységvektor - a_t = a_t_abs * e_v (a tangenciális gyorsulásvektor) - a_t_magnitude = |a_t_abs| (előjel nélküli nagysága)</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a_t" data-search="num_kinem a_t a tangenciális gyorsulásvektor.
+
+fizikai jelentés:
+    a gyorsulásnak az a része, amely a pillanatnyi sebesség irányába
+    mutat. ez változtatja meg a sebesség nagyságát.
+
+visszatérési érték:
+    kétdimenziós numpy-tömb, shape: (n, ndim), ahol n az időpontok
+    száma, ndim a mozgás dimenziószáma.
+
+    struktúra (2d mozgás esetén):
+        a_t = [[a_tx0, a_ty0],   ← 0. időpont tangenciális gyorsulásvektora
+            [a_tx1, a_ty1],   ← 1. időpont tangenciális gyorsulásvektora
+            ...
+            [a_txn, a_tyn]]   ← n. időpont tangenciális gyorsulásvektora
+
+    a vektor mindig párhuzamos a pillanatnyi sebességvektorral:
+        - ha a_t_abs &gt; 0: a_t a sebességgel egyező irányba mutat (gyorsul)
+        - ha a_t_abs &lt; 0: a_t a sebességgel ellentétes irányba mutat (lassul)
+        - ha a_t_abs = 0: nincs tangenciális gyorsulás (állandó sebességnagyság)
+
+    az előjeles nagysága az a_t_abs attribútumban érhető el skalárként.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_t</span>
+          </div>
+          <code class="signature">num_kinem.a_t(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A tangenciális gyorsulásvektor.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A tangenciális gyorsulásvektor.</p><p>Fizikai jelentés: A gyorsulásnak az a része, amely a pillanatnyi sebesség irányába mutat. Ez változtatja meg a sebesség nagyságát.</p><p>Visszatérési érték: Kétdimenziós NumPy-tömb, shape: (N, Ndim), ahol N az időpontok száma, Ndim a mozgás dimenziószáma.</p><p>Struktúra (2D mozgás esetén): a_t = [[a_tx0, a_ty0], ← 0. időpont tangenciális gyorsulásvektora [a_tx1, a_ty1], ← 1. időpont tangenciális gyorsulásvektora ... [a_txN, a_tyN]] ← N. időpont tangenciális gyorsulásvektora</p><p>A vektor mindig párhuzamos a pillanatnyi sebességvektorral: - ha a_t_abs &gt; 0: a_t a sebességgel egyező irányba mutat (gyorsul) - ha a_t_abs &lt; 0: a_t a sebességgel ellentétes irányba mutat (lassul) - ha a_t_abs = 0: nincs tangenciális gyorsulás (állandó sebességnagyság)</p><p>Az előjeles nagysága az a_t_abs attribútumban érhető el skalárként.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Kétdimenziós NumPy-tömb, shape: (N, Ndim), ahol N az időpontok száma, Ndim a mozgás dimenziószáma.</p><p>Struktúra (2D mozgás esetén): a_t = [[a_tx0, a_ty0], ← 0. időpont tangenciális gyorsulásvektora [a_tx1, a_ty1], ← 1. időpont tangenciális gyorsulásvektora ... [a_txN, a_tyN]] ← N. időpont tangenciális gyorsulásvektora</p><p>A vektor mindig párhuzamos a pillanatnyi sebességvektorral: - ha a_t_abs &gt; 0: a_t a sebességgel egyező irányba mutat (gyorsul) - ha a_t_abs &lt; 0: a_t a sebességgel ellentétes irányba mutat (lassul) - ha a_t_abs = 0: nincs tangenciális gyorsulás (állandó sebességnagyság)</p><p>Az előjeles nagysága az a_t_abs attribútumban érhető el skalárként.</p></section><section><h5>Fizikai jelentés</h5><p>A gyorsulásnak az a része, amely a pillanatnyi sebesség irányába mutat. Ez változtatja meg a sebesség nagyságát.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a_t_magnitude" data-search="num_kinem a_t_magnitude a tangenciális gyorsulás előjel nélküli nagysága.
+
+fizikai jelentés:
+    megadja, hogy a gyorsulás sebesség irányába eső komponense
+    mekkora nagyságú, előjel nélkül.
+
+    a `a_t_abs` előjeles mennyiség:
+        pozitív  -&gt; a test gyorsul a pálya mentén
+        negatív  -&gt; a test lassul a pálya mentén
+
+    ez a property ennek az abszolút értékét adja vissza:
+
+        a_t_magnitude = |a_t_abs|
+
+gyakorlati példa:
+    akkor hasznos, ha nem az érdekel, hogy a test gyorsul-e vagy lassul,
+    hanem csak az, hogy milyen erősen változik a sebességének nagysága.
+    például közegellenállásos dobásnál vagy rakétamozgásnál megkereshető,
+    mikor a legerősebb a pálya menti gyorsítás vagy fékezés.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb. az `i`. eleme az `i`. időponthoz tartozó
+    tangenciális gyorsulás előjel nélküli nagysága. a tangenciális gyorsulás nagysága előjel nélkül.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_t_magnitude</span>
+          </div>
+          <code class="signature">num_kinem.a_t_magnitude(self)</code>
+        </div>
+        <div class="summary-text">A tangenciális gyorsulás nagysága előjel nélkül.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A tangenciális gyorsulás előjel nélküli nagysága.</p><p>Fizikai jelentés: Megadja, hogy a gyorsulás sebesség irányába eső komponense mekkora nagyságú, előjel nélkül.</p><p>A `a_t_abs` előjeles mennyiség: pozitív -&gt; a test gyorsul a pálya mentén negatív -&gt; a test lassul a pálya mentén</p><p>Ez a property ennek az abszolút értékét adja vissza:</p><p>a_t_magnitude = |a_t_abs|</p><p>Gyakorlati példa: Akkor hasznos, ha nem az érdekel, hogy a test gyorsul-e vagy lassul, hanem csak az, hogy milyen erősen változik a sebességének nagysága. Például közegellenállásos dobásnál vagy rakétamozgásnál megkereshető, mikor a legerősebb a pálya menti gyorsítás vagy fékezés.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb. Az `i`. eleme az `i`. időponthoz tartozó tangenciális gyorsulás előjel nélküli nagysága.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb. Az `i`. eleme az `i`. időponthoz tartozó tangenciális gyorsulás előjel nélküli nagysága.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja, hogy a gyorsulás sebesség irányába eső komponense mekkora nagyságú, előjel nélkül.</p><p>A `a_t_abs` előjeles mennyiség: pozitív -&gt; a test gyorsul a pálya mentén negatív -&gt; a test lassul a pálya mentén</p><p>Ez a property ennek az abszolút értékét adja vissza:</p><p>a_t_magnitude = |a_t_abs|</p><p>Gyakorlati példa: Akkor hasznos, ha nem az érdekel, hogy a test gyorsul-e vagy lassul, hanem csak az, hogy milyen erősen változik a sebességének nagysága. Például közegellenállásos dobásnál vagy rakétamozgásnál megkereshető, mikor a legerősebb a pálya menti gyorsítás vagy fékezés.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a_cp" data-search="num_kinem a_cp a centripetális gyorsulásvektor.
+
+fizikai jelentés:
+    a gyorsulásnak a sebességre merőleges része. ez változtatja meg a
+    mozgás irányát, vagyis a pálya görbüléséhez kapcsolódik.
+
+visszatérési érték:
+    kétdimenziós numpy-tömb, soronként a centripetális
+    gyorsulásvektorral.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_cp</span>
+          </div>
+          <code class="signature">num_kinem.a_cp(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A centripetális gyorsulásvektor.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A centripetális gyorsulásvektor.</p><p>Fizikai jelentés: A gyorsulásnak a sebességre merőleges része. Ez változtatja meg a mozgás irányát, vagyis a pálya görbüléséhez kapcsolódik.</p><p>Visszatérési érték: Kétdimenziós NumPy-tömb, soronként a centripetális gyorsulásvektorral.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Kétdimenziós NumPy-tömb, soronként a centripetális gyorsulásvektorral.</p></section><section><h5>Fizikai jelentés</h5><p>A gyorsulásnak a sebességre merőleges része. Ez változtatja meg a mozgás irányát, vagyis a pálya görbüléséhez kapcsolódik.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-a_cp_abs" data-search="num_kinem a_cp_abs a centripetális gyorsulás nagysága.
+
+fizikai jelentés:
+    megadja, milyen erősen változik a sebesség iránya. körmozgásnál ez
+    a szokásos centripetális gyorsulás nagyságának felel meg.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb a centripetális gyorsulás nagyságával. a centripetális gyorsulás nagysága.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_cp_abs</span>
+          </div>
+          <code class="signature">num_kinem.a_cp_abs(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A centripetális gyorsulás nagysága.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A centripetális gyorsulás nagysága.</p><p>Fizikai jelentés: Megadja, milyen erősen változik a sebesség iránya. Körmozgásnál ez a szokásos centripetális gyorsulás nagyságának felel meg.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb a centripetális gyorsulás nagyságával.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb a centripetális gyorsulás nagyságával.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja, milyen erősen változik a sebesség iránya. Körmozgásnál ez a szokásos centripetális gyorsulás nagyságának felel meg.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-Rinv" data-search="num_kinem rinv a görbületi sugár reciproka.
+
+fizikai jelentés:
+    a pálya görbületét jellemzi. egyenes mozgásnál értéke közel nulla,
+    erősebben kanyarodó pályán nagyobb. azért a reciproka szerepel,
+    mert végtelen görbületi sugár helyett a nulla jól tárolható.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb a görbületi sugár reciprokával. a görbületi sugár reciproka; nagyobb érték szorosabb kanyart jelez.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">Rinv</span>
+          </div>
+          <code class="signature">num_kinem.Rinv(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A görbületi sugár reciproka; nagyobb érték szorosabb kanyart jelez.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A görbületi sugár reciproka.</p><p>Fizikai jelentés: A pálya görbületét jellemzi. Egyenes mozgásnál értéke közel nulla, erősebben kanyarodó pályán nagyobb. Azért a reciproka szerepel, mert végtelen görbületi sugár helyett a nulla jól tárolható.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb a görbületi sugár reciprokával.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb a görbületi sugár reciprokával.</p></section><section><h5>Fizikai jelentés</h5><p>A pálya görbületét jellemzi. Egyenes mozgásnál értéke közel nulla, erősebben kanyarodó pályán nagyobb. Azért a reciproka szerepel, mert végtelen görbületi sugár helyett a nulla jól tárolható.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_kinem-acc" data-search="num_kinem acc a gps-mérés pontossági becslése.
+
+fizikai jelentés:
+    a gps-adatokhoz tartozó helymeghatározási bizonytalanság becsült
+    értéke. segít eldönteni, mennyire megbízhatóak a mért helypontok.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb, általában méterben megadott pontossági
+    értékekkel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">acc</span>
+          </div>
+          <code class="signature">num_kinem.acc(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A GPS-mérés pontossági becslése.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A GPS-mérés pontossági becslése.</p><p>Fizikai jelentés: A GPS-adatokhoz tartozó helymeghatározási bizonytalanság becsült értéke. Segít eldönteni, mennyire megbízhatóak a mért helypontok.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb, általában méterben megadott pontossági értékekkel.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb, általában méterben megadott pontossági értékekkel.</p></section><section><h5>Fizikai jelentés</h5><p>A GPS-adatokhoz tartozó helymeghatározási bizonytalanság becsült értéke. Segít eldönteni, mennyire megbízhatóak a mért helypontok.</p></section>
+      </div>
+    </details>
+    </section>
+    </section>
+    
+      
+    <section class="class-panel" id="class-num_dinam">
+      <header class="class-header">
+        <div>
+          <div class="eyebrow"><span class="badge badge-class">class</span> <span class="badge badge-group">19 elem</span></div>
+          <h3>num_dinam</h3>
+        </div>
+        <p class="class-summary">Dinamikai szimulációs class, amely erő- és tömegfüggvényből numerikusan integrálja a mozgást.</p>
+      </header>
+      <div class="class-meta">
+        <section>
+          <h4>Mit reprezentál?</h4>
+          <p>Akkor kell, ha a mozgás nem közvetlenül adott, hanem az erőhatásokból és a kezdőfeltételekből kell kiszámolni a teljes pályát.</p>
+        </section>
+        <section>
+          <h4>Tipikus workflow</h4>
+          <p>Jellemző használat: időparaméterek → tömegfüggvény → erőfüggvény → kezdőhely és kezdősebesség → opcionális leállási feltétel → full_dinam_calc().</p>
+        </section>
+      </div>
+      <section class='method-group'><h4>Létrehozás</h4>
+    <details class="api-item" id="num_dinam-__init__" data-search="num_dinam __init__ létrehoz egy `num_dinam` objektumot a megadott dimenziószámmal.
+
+fizikai jelentés:
+    egy dinamikai mozgásszámítás alapobjektumát készíti elő. a
+    dimenziószám határozza meg, hány komponense van a helynek,
+    sebességnek, gyorsulásnak és erőnek.
+
+paraméterek:
+    ndim: a mozgás dimenziószáma.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az objektum megörökli a
+    `num_kinem` attribútumait, és a `stop_cond` kezdetben `none` lesz. létrehozza az objektumot a kívánt dimenziószámmal és alapállapottal.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Létrehozás</span>
+            <span class="item-name">__init__</span>
+          </div>
+          <code class="signature">num_dinam.__init__(self, Ndim)</code>
+        </div>
+        <div class="summary-text">Létrehozza az objektumot a kívánt dimenziószámmal és alapállapottal.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Létrehoz egy `num_dinam` objektumot a megadott dimenziószámmal.</p><p>Fizikai jelentés: Egy dinamikai mozgásszámítás alapobjektumát készíti elő. A dimenziószám határozza meg, hány komponense van a helynek, sebességnek, gyorsulásnak és erőnek.</p><p>Paraméterek: Ndim: A mozgás dimenziószáma.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az objektum megörökli a `num_kinem` attribútumait, és a `stop_cond` kezdetben `None` lesz.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Ndim: A mozgás dimenziószáma.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az objektum megörökli a `num_kinem` attribútumait, és a `stop_cond` kezdetben `None` lesz.</p></section><section><h5>Fizikai jelentés</h5><p>Egy dinamikai mozgásszámítás alapobjektumát készíti elő. A dimenziószám határozza meg, hány komponense van a helynek, sebességnek, gyorsulásnak és erőnek.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Beállítás</h4>
+    <details class="api-item" id="num_dinam-set_time_param" data-search="num_dinam set_time_param az időtartomány beállítása egyenletes lépésközzel. nem generálja le t-k tömbjét.
+
+fizikai jelentés:
+    a dinamikai számítás kezdőidejét, végidejét és időlépését adja meg.
+    a tényleges időpontok listája a számítás közben épül fel, mert a
+    mozgás leállási feltétel miatt korábban is véget érhet.
+
+paraméterek:
+    t_start: a kezdő időpont.
+    t_end: a számítás legkésőbbi időpontja.
+    delta_t: az időlépés nagysága.
+
+visszatérési érték:
+    nincs külön visszatérési érték. beállítja a `t_start`, `t_end` és
+    `delta_t` attribútumokat. beállítja a dinamikai szimuláció időparamétereit.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_time_param</span>
+          </div>
+          <code class="signature">num_dinam.set_time_param(self, t_start, t_end, delta_t)</code>
+        </div>
+        <div class="summary-text">Beállítja a dinamikai szimuláció időparamétereit.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az időtartomány beállítása egyenletes lépésközzel. Nem generálja le t-k tömbjét.</p><p>Fizikai jelentés: A dinamikai számítás kezdőidejét, végidejét és időlépését adja meg. A tényleges időpontok listája a számítás közben épül fel, mert a mozgás leállási feltétel miatt korábban is véget érhet.</p><p>Paraméterek: t_start: A kezdő időpont. t_end: A számítás legkésőbbi időpontja. delta_t: Az időlépés nagysága.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Beállítja a `t_start`, `t_end` és `delta_t` attribútumokat.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>t_start: A kezdő időpont.</li><li>t_end: A számítás legkésőbbi időpontja.</li><li>delta_t: Az időlépés nagysága.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Beállítja a `t_start`, `t_end` és `delta_t` attribútumokat.</p></section><section><h5>Fizikai jelentés</h5><p>A dinamikai számítás kezdőidejét, végidejét és időlépését adja meg. A tényleges időpontok listája a számítás közben épül fel, mert a mozgás leállási feltétel miatt korábban is véget érhet.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-set_mass_fun" data-search="num_dinam set_mass_fun tömeg az idő függvényében.
+
+fizikai jelentés:
+    megadja, hogy a test tömege hogyan függ az időtől. állandó tömeg
+    esetén olyan függvény adható meg, amely mindig ugyanazt a számot
+    adja vissza.
+
+paraméterek:
+    fun: függvény, amely egy időpontot kap, és az adott időponthoz
+        tartozó tömeget adja vissza.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a függvény a `mass_fun`
+    attribútumba kerül. beállítja a dinamikai modell tömegfüggvényét.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_mass_fun</span>
+          </div>
+          <code class="signature">num_dinam.set_mass_fun(self, fun)</code>
+        </div>
+        <div class="summary-text">Beállítja a dinamikai modell tömegfüggvényét.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Tömeg az idő függvényében.</p><p>Fizikai jelentés: Megadja, hogy a test tömege hogyan függ az időtől. Állandó tömeg esetén olyan függvény adható meg, amely mindig ugyanazt a számot adja vissza.</p><p>Paraméterek: fun: Függvény, amely egy időpontot kap, és az adott időponthoz tartozó tömeget adja vissza.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A függvény a `mass_fun` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fun: Függvény, amely egy időpontot kap, és az adott időponthoz</li><li>tartozó tömeget adja vissza.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A függvény a `mass_fun` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja, hogy a test tömege hogyan függ az időtől. Állandó tömeg esetén olyan függvény adható meg, amely mindig ugyanazt a számot adja vissza.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-set_F_fun" data-search="num_dinam set_f_fun erőfüggvény megadása.
+
+fizikai jelentés:
+    megadja a testre ható eredő erőt az aktuális állapot függvényében.
+    ebből a program newton második törvénye alapján gyorsulást számít.
+
+paraméterek:
+    fun: függvény, amely a `(t, r, v, m)` argumentumokat kapja, és
+        `ndim` komponensű erővektort ad vissza.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a függvény az `f` attribútumba
+    kerül. beállítja a dinamikai modell eredő erőfüggvényét.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_F_fun</span>
+          </div>
+          <code class="signature">num_dinam.set_F_fun(self, fun)</code>
+        </div>
+        <div class="summary-text">Beállítja a dinamikai modell eredő erőfüggvényét.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Erőfüggvény megadása.</p><p>Fizikai jelentés: Megadja a testre ható eredő erőt az aktuális állapot függvényében. Ebből a program Newton második törvénye alapján gyorsulást számít.</p><p>Paraméterek: fun: Függvény, amely a `(t, r, v, m)` argumentumokat kapja, és `Ndim` komponensű erővektort ad vissza.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A függvény az `F` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fun: Függvény, amely a `(t, r, v, m)` argumentumokat kapja, és</li><li>`Ndim` komponensű erővektort ad vissza.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A függvény az `F` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a testre ható eredő erőt az aktuális állapot függvényében. Ebből a program Newton második törvénye alapján gyorsulást számít.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-set_stop_cond" data-search="num_dinam set_stop_cond számítások leállási feltételének függvénye.
+
+fizikai jelentés:
+    olyan eseményt adhatunk meg vele, amelynél a mozgásszámításnak
+    véget kell érnie. például leállítható a számítás, amikor a test
+    földet ér vagy elhagy egy vizsgált tartományt.
+
+paraméterek:
+    fun: függvény, amely az aktuális `(r, v)` állapotot kapja, és
+        logikai értékkel jelzi, hogy le kell-e állni.
+
+visszatérési érték:
+    nincs külön visszatérési érték. a függvény a `stop_cond`
+    attribútumba kerül. leállási feltételt ad a dinamikai integráláshoz.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_stop_cond</span>
+          </div>
+          <code class="signature">num_dinam.set_stop_cond(self, fun)</code>
+        </div>
+        <div class="summary-text">Leállási feltételt ad a dinamikai integráláshoz.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Számítások leállási feltételének függvénye.</p><p>Fizikai jelentés: Olyan eseményt adhatunk meg vele, amelynél a mozgásszámításnak véget kell érnie. Például leállítható a számítás, amikor a test földet ér vagy elhagy egy vizsgált tartományt.</p><p>Paraméterek: fun: Függvény, amely az aktuális `(r, v)` állapotot kapja, és logikai értékkel jelzi, hogy le kell-e állni.</p><p>Visszatérési érték: Nincs külön visszatérési érték. A függvény a `stop_cond` attribútumba kerül.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fun: Függvény, amely az aktuális `(r, v)` állapotot kapja, és</li><li>logikai értékkel jelzi, hogy le kell-e állni.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. A függvény a `stop_cond` attribútumba kerül.</p></section><section><h5>Fizikai jelentés</h5><p>Olyan eseményt adhatunk meg vele, amelynél a mozgásszámításnak véget kell érnie. Például leállítható a számítás, amikor a test földet ér vagy elhagy egy vizsgált tartományt.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-set_r0_v0" data-search="num_dinam set_r0_v0 a kezdőhely és kezdősebesség megadása.
+
+fizikai jelentés:
+    ezek a dinamikai differenciálegyenlet kezdeti feltételei. a
+    későbbi mozgáspálya az erőtörvény mellett ezektől az értékektől
+    indul.
+
+paraméterek:
+    r0: kezdőhelyvektor.
+    v0: kezdősebességvektor.
+
+visszatérési érték:
+    nincs külön visszatérési érték. beállítja az `r0` és `v0`
+    attribútumokat. beállítja a kezdőhelyet és a kezdősebességet.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Beállítás</span>
+            <span class="item-name">set_r0_v0</span>
+          </div>
+          <code class="signature">num_dinam.set_r0_v0(self, r0, v0)</code>
+        </div>
+        <div class="summary-text">Beállítja a kezdőhelyet és a kezdősebességet.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A kezdőhely és kezdősebesség megadása.</p><p>Fizikai jelentés: Ezek a dinamikai differenciálegyenlet kezdeti feltételei. A későbbi mozgáspálya az erőtörvény mellett ezektől az értékektől indul.</p><p>Paraméterek: r0: Kezdőhelyvektor. v0: Kezdősebességvektor.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Beállítja az `r0` és `v0` attribútumokat.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>r0: Kezdőhelyvektor.</li><li>v0: Kezdősebességvektor.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Beállítja az `r0` és `v0` attribútumokat.</p></section><section><h5>Fizikai jelentés</h5><p>Ezek a dinamikai differenciálegyenlet kezdeti feltételei. A későbbi mozgáspálya az erőtörvény mellett ezektől az értékektől indul.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Számítás</h4>
+    <details class="api-item" id="num_dinam-Newton_step" data-search="num_dinam newton_step egy elemi lépés newton 2. törvénye alapján.
+alkalmazott módszer: módosított euler-módszer.
+
+fizikai jelentés:
+    az aktuális idő, hely és sebesség alapján kiszámítja az erőt,
+    ebből a gyorsulást, majd egy `delta_t` hosszúságú időlépéssel
+    megbecsüli az új sebességet és helyet.
+
+paraméterek:
+    t_old: az aktuális időpont.
+    r_old: az aktuális helyvektor.
+    v_old: az aktuális sebességvektor.
+
+visszatérési érték:
+    háromelemű tuple: `(r_new, v_new, a_old)`. ezek rendre az új
+    helyvektor, az új sebességvektor és a lépés elején számított
+    gyorsulásvektor. a dinamikai integrálás egyetlen lépését hajtja végre.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">Newton_step</span>
+          </div>
+          <code class="signature">num_dinam.Newton_step(self, t_old, r_old, v_old)</code>
+        </div>
+        <div class="summary-text">A dinamikai integrálás egyetlen lépését hajtja végre.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Egy elemi lépés Newton 2. törvénye alapján. Alkalmazott módszer: Módosított Euler-módszer.</p><p>Fizikai jelentés: Az aktuális idő, hely és sebesség alapján kiszámítja az erőt, ebből a gyorsulást, majd egy `delta_t` hosszúságú időlépéssel megbecsüli az új sebességet és helyet.</p><p>Paraméterek: t_old: Az aktuális időpont. r_old: Az aktuális helyvektor. v_old: Az aktuális sebességvektor.</p><p>Visszatérési érték: Háromelemű tuple: `(r_new, v_new, a_old)`. Ezek rendre az új helyvektor, az új sebességvektor és a lépés elején számított gyorsulásvektor.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>t_old: Az aktuális időpont.</li><li>r_old: Az aktuális helyvektor.</li><li>v_old: Az aktuális sebességvektor.</li></ul></section><section><h5>Visszatérési érték</h5><p>Háromelemű tuple: `(r_new, v_new, a_old)`. Ezek rendre az új helyvektor, az új sebességvektor és a lépés elején számított gyorsulásvektor.</p></section><section><h5>Fizikai jelentés</h5><p>Az aktuális idő, hely és sebesség alapján kiszámítja az erőt, ebből a gyorsulást, majd egy `delta_t` hosszúságú időlépéssel megbecsüli az új sebességet és helyet.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-full_dinam_calc" data-search="num_dinam full_dinam_calc teljes dinamikai számítássorozat.
+
+fizikai jelentés:
+    a megadott kezdeti feltételekből és erőtörvényből lépésenként
+    kiszámítja a test mozgását. a számítás newton második törvényét
+    használja, és addig fut, amíg el nem éri a végidőt vagy a megadott
+    leállási feltétel igaz nem lesz.
+
+paraméterek:
+    nincsenek közvetlen paraméterei. a korábban beállított
+    `t_start`, `t_end`, `delta_t`, `r0`, `v0`, `mass_fun`, `f` és
+    opcionálisan `stop_cond` attribútumokat használja.
+
+visszatérési érték:
+    nincs külön visszatérési érték. az eredményeket az `a`, `v`, `r`,
+    `m` és `t` attribútumokba írja numpy-tömbként. a teljes dinamikai szimulációt lefuttatja az erőmodell alapján.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-method">metódus</span>
+            <span class="badge badge-group">Számítás</span>
+            <span class="item-name">full_dinam_calc</span>
+          </div>
+          <code class="signature">num_dinam.full_dinam_calc(self)</code>
+        </div>
+        <div class="summary-text">A teljes dinamikai szimulációt lefuttatja az erőmodell alapján.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Teljes dinamikai számítássorozat.</p><p>Fizikai jelentés: A megadott kezdeti feltételekből és erőtörvényből lépésenként kiszámítja a test mozgását. A számítás Newton második törvényét használja, és addig fut, amíg el nem éri a végidőt vagy a megadott leállási feltétel igaz nem lesz.</p><p>Paraméterek: Nincsenek közvetlen paraméterei. A korábban beállított `t_start`, `t_end`, `delta_t`, `r0`, `v0`, `mass_fun`, `F` és opcionálisan `stop_cond` attribútumokat használja.</p><p>Visszatérési érték: Nincs külön visszatérési érték. Az eredményeket az `a`, `v`, `r`, `m` és `t` attribútumokba írja NumPy-tömbként.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>Nincsenek közvetlen paraméterei. A korábban beállított</li><li>`t_start`, `t_end`, `delta_t`, `r0`, `v0`, `mass_fun`, `F` és</li><li>opcionálisan `stop_cond` attribútumokat használja.</li></ul></section><section><h5>Visszatérési érték</h5><p>Nincs külön visszatérési érték. Az eredményeket az `a`, `v`, `r`, `m` és `t` attribútumokba írja NumPy-tömbként.</p></section><section><h5>Fizikai jelentés</h5><p>A megadott kezdeti feltételekből és erőtörvényből lépésenként kiszámítja a test mozgását. A számítás Newton második törvényét használja, és addig fut, amíg el nem éri a végidőt vagy a megadott leállási feltétel igaz nem lesz.</p></section>
+      </div>
+    </details>
+    </section><section class='method-group'><h4>Property-k</h4>
+    <details class="api-item" id="num_dinam-stop_cond" data-search="num_dinam stop_cond a dinamikai számítás leállási feltétele.
+
+fizikai jelentés:
+    olyan eseményt ír le, amelynél a mozgásszámítást abba kell hagyni,
+    például talajra érésnél vagy egy határfelület elérésekor.
+
+visszatérési érték:
+    függvény vagy `none`. a függvény az aktuális helyet és sebességet
+    kapja, és igaz-hamis értékkel jelzi a leállást.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">stop_cond</span>
+          </div>
+          <code class="signature">num_dinam.stop_cond(self) -&gt; object</code>
+        </div>
+        <div class="summary-text">A dinamikai számítás leállási feltétele.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A dinamikai számítás leállási feltétele.</p><p>Fizikai jelentés: Olyan eseményt ír le, amelynél a mozgásszámítást abba kell hagyni, például talajra érésnél vagy egy határfelület elérésekor.</p><p>Visszatérési érték: Függvény vagy `None`. A függvény az aktuális helyet és sebességet kapja, és igaz-hamis értékkel jelzi a leállást.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Függvény vagy `None`. A függvény az aktuális helyet és sebességet kapja, és igaz-hamis értékkel jelzi a leállást.</p></section><section><h5>Fizikai jelentés</h5><p>Olyan eseményt ír le, amelynél a mozgásszámítást abba kell hagyni, például talajra érésnél vagy egy határfelület elérésekor.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-mass_fun" data-search="num_dinam mass_fun az időfüggő tömegfüggvény.
+
+fizikai jelentés:
+    megadja a test tömegét az idő függvényében. állandó tömegű testnél
+    ez olyan függvény, amely minden időpontra ugyanazt az értéket adja.
+
+visszatérési érték:
+    függvény, amely egy időpontból tömeget számít.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">mass_fun</span>
+          </div>
+          <code class="signature">num_dinam.mass_fun(self) -&gt; object</code>
+        </div>
+        <div class="summary-text">Az időfüggő tömegfüggvény.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az időfüggő tömegfüggvény.</p><p>Fizikai jelentés: Megadja a test tömegét az idő függvényében. Állandó tömegű testnél ez olyan függvény, amely minden időpontra ugyanazt az értéket adja.</p><p>Visszatérési érték: Függvény, amely egy időpontból tömeget számít.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Függvény, amely egy időpontból tömeget számít.</p></section><section><h5>Fizikai jelentés</h5><p>Megadja a test tömegét az idő függvényében. Állandó tömegű testnél ez olyan függvény, amely minden időpontra ugyanazt az értéket adja.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-F" data-search="num_dinam f a testre ható eredő erő függvénye.
+
+fizikai jelentés:
+    az aktuális idő, hely, sebesség és tömeg alapján megadja az eredő
+    erővektort. ebből számítja a program a gyorsulást newton második
+    törvényével.
+
+visszatérési érték:
+    függvény, amely `(t, r, v, m)` bemenetből erővektort ad vissza.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">F</span>
+          </div>
+          <code class="signature">num_dinam.F(self) -&gt; object</code>
+        </div>
+        <div class="summary-text">A testre ható eredő erő függvénye.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A testre ható eredő erő függvénye.</p><p>Fizikai jelentés: Az aktuális idő, hely, sebesség és tömeg alapján megadja az eredő erővektort. Ebből számítja a program a gyorsulást Newton második törvényével.</p><p>Visszatérési érték: Függvény, amely `(t, r, v, m)` bemenetből erővektort ad vissza.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Függvény, amely `(t, r, v, m)` bemenetből erővektort ad vissza.</p></section><section><h5>Fizikai jelentés</h5><p>Az aktuális idő, hely, sebesség és tömeg alapján megadja az eredő erővektort. Ebből számítja a program a gyorsulást Newton második törvényével.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-r0" data-search="num_dinam r0 a dinamikai számítás kezdőhelye.
+
+fizikai jelentés:
+    a test helyvektora a mozgás kezdetén. ez a dinamikai egyenlet egyik
+    kezdeti feltétele.
+
+visszatérési érték:
+    numpy-tömbbé alakítható vektor a kezdőkoordinátákkal.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">r0</span>
+          </div>
+          <code class="signature">num_dinam.r0(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A dinamikai számítás kezdőhelye.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A dinamikai számítás kezdőhelye.</p><p>Fizikai jelentés: A test helyvektora a mozgás kezdetén. Ez a dinamikai egyenlet egyik kezdeti feltétele.</p><p>Visszatérési érték: NumPy-tömbbé alakítható vektor a kezdőkoordinátákkal.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>NumPy-tömbbé alakítható vektor a kezdőkoordinátákkal.</p></section><section><h5>Fizikai jelentés</h5><p>A test helyvektora a mozgás kezdetén. Ez a dinamikai egyenlet egyik kezdeti feltétele.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-v0" data-search="num_dinam v0 a dinamikai számítás kezdősebessége.
+
+fizikai jelentés:
+    a test sebességvektora a mozgás kezdetén. ez a dinamikai egyenlet
+    másik kezdeti feltétele.
+
+visszatérési érték:
+    numpy-tömbbé alakítható vektor a kezdősebesség komponenseivel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">v0</span>
+          </div>
+          <code class="signature">num_dinam.v0(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">A dinamikai számítás kezdősebessége.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A dinamikai számítás kezdősebessége.</p><p>Fizikai jelentés: A test sebességvektora a mozgás kezdetén. Ez a dinamikai egyenlet másik kezdeti feltétele.</p><p>Visszatérési érték: NumPy-tömbbé alakítható vektor a kezdősebesség komponenseivel.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>NumPy-tömbbé alakítható vektor a kezdősebesség komponenseivel.</p></section><section><h5>Fizikai jelentés</h5><p>A test sebességvektora a mozgás kezdetén. Ez a dinamikai egyenlet másik kezdeti feltétele.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-a_list" data-search="num_dinam a_list a számítás közben gyűjtött gyorsulásvektorok listája.
+
+fizikai jelentés:
+    a dinamikai lépések során kapott gyorsulásértékeket tárolja addig,
+    amíg a számítás végén numpy-tömbbé nem alakulnak.
+
+visszatérési érték:
+    lista, amelynek elemei gyorsulásvektorok.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">a_list</span>
+          </div>
+          <code class="signature">num_dinam.a_list(self) -&gt; list</code>
+        </div>
+        <div class="summary-text">A számítás közben gyűjtött gyorsulásvektorok listája.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A számítás közben gyűjtött gyorsulásvektorok listája.</p><p>Fizikai jelentés: A dinamikai lépések során kapott gyorsulásértékeket tárolja addig, amíg a számítás végén NumPy-tömbbé nem alakulnak.</p><p>Visszatérési érték: Lista, amelynek elemei gyorsulásvektorok.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Lista, amelynek elemei gyorsulásvektorok.</p></section><section><h5>Fizikai jelentés</h5><p>A dinamikai lépések során kapott gyorsulásértékeket tárolja addig, amíg a számítás végén NumPy-tömbbé nem alakulnak.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-v_list" data-search="num_dinam v_list a számítás közben gyűjtött sebességvektorok listája.
+
+fizikai jelentés:
+    a lépésenként kiszámított sebességvektorokat tárolja a végső
+    tömbbé alakítás előtt.
+
+visszatérési érték:
+    lista, amelynek elemei sebességvektorok.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">v_list</span>
+          </div>
+          <code class="signature">num_dinam.v_list(self) -&gt; list</code>
+        </div>
+        <div class="summary-text">A számítás közben gyűjtött sebességvektorok listája.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A számítás közben gyűjtött sebességvektorok listája.</p><p>Fizikai jelentés: A lépésenként kiszámított sebességvektorokat tárolja a végső tömbbé alakítás előtt.</p><p>Visszatérési érték: Lista, amelynek elemei sebességvektorok.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Lista, amelynek elemei sebességvektorok.</p></section><section><h5>Fizikai jelentés</h5><p>A lépésenként kiszámított sebességvektorokat tárolja a végső tömbbé alakítás előtt.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-r_list" data-search="num_dinam r_list a számítás közben gyűjtött helyvektorok listája.
+
+fizikai jelentés:
+    a lépésenként kiszámított helyvektorokat tárolja a végső tömbbé
+    alakítás előtt.
+
+visszatérési érték:
+    lista, amelynek elemei helyvektorok.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">r_list</span>
+          </div>
+          <code class="signature">num_dinam.r_list(self) -&gt; list</code>
+        </div>
+        <div class="summary-text">A számítás közben gyűjtött helyvektorok listája.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A számítás közben gyűjtött helyvektorok listája.</p><p>Fizikai jelentés: A lépésenként kiszámított helyvektorokat tárolja a végső tömbbé alakítás előtt.</p><p>Visszatérési érték: Lista, amelynek elemei helyvektorok.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Lista, amelynek elemei helyvektorok.</p></section><section><h5>Fizikai jelentés</h5><p>A lépésenként kiszámított helyvektorokat tárolja a végső tömbbé alakítás előtt.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-m_list" data-search="num_dinam m_list a számítás közben gyűjtött tömegértékek listája.
+
+fizikai jelentés:
+    az egyes időpontokhoz tartozó tömegeket tárolja, különösen akkor
+    hasznos, ha a tömeg időben változik.
+
+visszatérési érték:
+    lista a tömegértékekkel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">m_list</span>
+          </div>
+          <code class="signature">num_dinam.m_list(self) -&gt; list</code>
+        </div>
+        <div class="summary-text">A számítás közben gyűjtött tömegértékek listája.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A számítás közben gyűjtött tömegértékek listája.</p><p>Fizikai jelentés: Az egyes időpontokhoz tartozó tömegeket tárolja, különösen akkor hasznos, ha a tömeg időben változik.</p><p>Visszatérési érték: Lista a tömegértékekkel.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Lista a tömegértékekkel.</p></section><section><h5>Fizikai jelentés</h5><p>Az egyes időpontokhoz tartozó tömegeket tárolja, különösen akkor hasznos, ha a tömeg időben változik.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-t_list" data-search="num_dinam t_list a számítás közben gyűjtött időpontok listája.
+
+fizikai jelentés:
+    azokat az időpontokat tárolja, amelyekig a dinamikai számítás
+    ténylegesen eljutott.
+
+visszatérési érték:
+    lista az időpontokkal.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">t_list</span>
+          </div>
+          <code class="signature">num_dinam.t_list(self) -&gt; list</code>
+        </div>
+        <div class="summary-text">A számítás közben gyűjtött időpontok listája.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A számítás közben gyűjtött időpontok listája.</p><p>Fizikai jelentés: Azokat az időpontokat tárolja, amelyekig a dinamikai számítás ténylegesen eljutott.</p><p>Visszatérési érték: Lista az időpontokkal.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Lista az időpontokkal.</p></section><section><h5>Fizikai jelentés</h5><p>Azokat az időpontokat tárolja, amelyekig a dinamikai számítás ténylegesen eljutott.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="num_dinam-m" data-search="num_dinam m a kiszámított tömegértékek tömbje.
+
+fizikai jelentés:
+    az egyes tárolt időpontokhoz tartozó tömeg. állandó tömeg esetén
+    minden eleme azonos, időben változó tömeg esetén a változást mutatja.
+
+visszatérési érték:
+    egy dimenziós numpy-tömb a tömegértékekkel. dinamikai szimulációnál a pillanatnyi tömeg idősora.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-property">property</span>
+            <span class="badge badge-group">Property-k</span>
+            <span class="item-name">m</span>
+          </div>
+          <code class="signature">num_dinam.m(self) -&gt; numpy.ndarray</code>
+        </div>
+        <div class="summary-text">Dinamikai szimulációnál a pillanatnyi tömeg idősora.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A kiszámított tömegértékek tömbje.</p><p>Fizikai jelentés: Az egyes tárolt időpontokhoz tartozó tömeg. Állandó tömeg esetén minden eleme azonos, időben változó tömeg esetén a változást mutatja.</p><p>Visszatérési érték: Egy dimenziós NumPy-tömb a tömegértékekkel.</p>
+        </section>
+        <section><h5>Visszatérési érték</h5><p>Egy dimenziós NumPy-tömb a tömegértékekkel.</p></section><section><h5>Fizikai jelentés</h5><p>Az egyes tárolt időpontokhoz tartozó tömeg. Állandó tömeg esetén minden eleme azonos, időben változó tömeg esetén a változást mutatja.</p></section>
+      </div>
+    </details>
+    </section>
+    </section>
+    
+      
+            <section class="section-panel" id="section-gps">
+              <header class="section-header">
+                <div class="eyebrow"><span class="badge badge-group">szekció</span> <span class="badge badge-group">3 elem</span></div>
+                <h2>GPS és smoothing</h2>
+                <p>GPS-adatok beolvasása, num_kinem objektummá alakítása és simítása.</p>
+              </header>
+              
+    <details class="api-item" id="fn-GPS_Logger_to_xyt" data-search="gps_logger_to_xyt az &#x27;orig&#x27;-ban specifikáltaknak megfelelő origót használva érintősíkra vetíti a gps koordinátákat
+    az &#x27;fname&#x27; fájlból. a földet gömb alakkal közelíti.
+
+fizikai jelentés:
+    a földrajzi hosszúság-szélesség adatokat közelítő síkbeli koordinátákká
+    alakítja. kis területre ez úgy értelmezhető, mintha a föld felszínét a
+    választott origó környezetében egy érintősíkkal helyettesítenénk.
+
+paraméterek:
+    fname: a gps-adatokat tartalmazó csv-fájl neve vagy elérési útja.
+        a fájlnak tartalmaznia kell a `longitude`, `latitude`,
+        `date time` és `accuracy(m)` oszlopokat.
+    orig: az origó választása. `&#x27;first&#x27;` esetén az első gps-pont lesz az
+        origó, `&#x27;center&#x27;` esetén az adatsor átlagos földrajzi pozíciója.
+
+visszatérési érték:
+    négy tömbből álló tuple: `(t, x, y, acc)`. ezek rendre az indulástól
+    számított idő másodpercben, a közelítő síkbeli `x` koordináta méterben,
+    a közelítő síkbeli `y` koordináta méterben és a gps pontossági becslése
+    méterben. gps logger fájlból idő- és helyadatokat olvas be továbbfeldolgozáshoz.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">GPS_Logger_to_xyt</span>
+          </div>
+          <code class="signature">GPS_Logger_to_xyt(fname, orig=&#x27;first&#x27;)</code>
+        </div>
+        <div class="summary-text">GPS logger fájlból idő- és helyadatokat olvas be továbbfeldolgozáshoz.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Az &#x27;orig&#x27;-ban specifikáltaknak megfelelő origót használva érintősíkra vetíti a GPS koordinátákat az &#x27;fname&#x27; fájlból. A Földet gömb alakkal közelíti.</p><p>Fizikai jelentés: A földrajzi hosszúság-szélesség adatokat közelítő síkbeli koordinátákká alakítja. Kis területre ez úgy értelmezhető, mintha a Föld felszínét a választott origó környezetében egy érintősíkkal helyettesítenénk.</p><p>Paraméterek: fname: A GPS-adatokat tartalmazó CSV-fájl neve vagy elérési útja. A fájlnak tartalmaznia kell a `longitude`, `latitude`, `date time` és `accuracy(m)` oszlopokat. orig: Az origó választása. `&#x27;first&#x27;` esetén az első GPS-pont lesz az origó, `&#x27;center&#x27;` esetén az adatsor átlagos földrajzi pozíciója.</p><p>Visszatérési érték: Négy tömbből álló tuple: `(t, x, y, acc)`. Ezek rendre az indulástól számított idő másodpercben, a közelítő síkbeli `x` koordináta méterben, a közelítő síkbeli `y` koordináta méterben és a GPS pontossági becslése méterben.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fname: A GPS-adatokat tartalmazó CSV-fájl neve vagy elérési útja.</li><li>A fájlnak tartalmaznia kell a `longitude`, `latitude`,</li><li>`date time` és `accuracy(m)` oszlopokat.</li><li>orig: Az origó választása. `&#x27;first&#x27;` esetén az első GPS-pont lesz az</li><li>origó, `&#x27;center&#x27;` esetén az adatsor átlagos földrajzi pozíciója.</li></ul></section><section><h5>Visszatérési érték</h5><p>Négy tömbből álló tuple: `(t, x, y, acc)`. Ezek rendre az indulástól számított idő másodpercben, a közelítő síkbeli `x` koordináta méterben, a közelítő síkbeli `y` koordináta méterben és a GPS pontossági becslése méterben.</p></section><section><h5>Fizikai jelentés</h5><p>A földrajzi hosszúság-szélesség adatokat közelítő síkbeli koordinátákká alakítja. Kis területre ez úgy értelmezhető, mintha a Föld felszínét a választott origó környezetében egy érintősíkkal helyettesítenénk.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-GPS_to_num_kinem" data-search="gps_to_num_kinem gps csv-fájlból kétdimenziós `num_kinem` objektumot készít.
+
+fizikai jelentés:
+    a gps-nyomvonalat síkbeli mozgásként értelmezi. a földrajzi
+    koordinátákból helyvektort készít, majd ebből numerikusan kiszámítja a
+    sebességet, gyorsulást, megtett utat, valamint a tangenciális és
+    centripetális gyorsulási adatokat.
+
+paraméterek:
+    fname: a gps-adatokat tartalmazó csv-fájl neve vagy elérési útja.
+    orig: az origó választása, amelyet a `gps_logger_to_xyt` függvénynek ad
+        tovább. lehetséges értékek: `&#x27;first&#x27;` vagy `&#x27;center&#x27;`.
+
+visszatérési érték:
+    egy kétdimenziós `num_kinem` objektum. az objektumban beállításra kerül
+    a `t`, `r`, `v`, `a`, `delta_r`, `pathlength`, `a_t`, `a_cp`, `rinv`
+    és `acc` attribútum. gps-fájlból közvetlenül num_kinem objektumot épít fel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">GPS_to_num_kinem</span>
+          </div>
+          <code class="signature">GPS_to_num_kinem(fname, orig=&#x27;first&#x27;) -&gt; rendes_fizinfo_docs_source.num_kinem</code>
+        </div>
+        <div class="summary-text">GPS-fájlból közvetlenül num_kinem objektumot épít fel.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>GPS CSV-fájlból kétdimenziós `num_kinem` objektumot készít.</p><p>Fizikai jelentés: A GPS-nyomvonalat síkbeli mozgásként értelmezi. A földrajzi koordinátákból helyvektort készít, majd ebből numerikusan kiszámítja a sebességet, gyorsulást, megtett utat, valamint a tangenciális és centripetális gyorsulási adatokat.</p><p>Paraméterek: fname: A GPS-adatokat tartalmazó CSV-fájl neve vagy elérési útja. orig: Az origó választása, amelyet a `GPS_Logger_to_xyt` függvénynek ad tovább. Lehetséges értékek: `&#x27;first&#x27;` vagy `&#x27;center&#x27;`.</p><p>Visszatérési érték: Egy kétdimenziós `num_kinem` objektum. Az objektumban beállításra kerül a `t`, `r`, `v`, `a`, `delta_r`, `pathlength`, `a_t`, `a_cp`, `Rinv` és `acc` attribútum.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>fname: A GPS-adatokat tartalmazó CSV-fájl neve vagy elérési útja.</li><li>orig: Az origó választása, amelyet a `GPS_Logger_to_xyt` függvénynek ad</li><li>tovább. Lehetséges értékek: `&#x27;first&#x27;` vagy `&#x27;center&#x27;`.</li></ul></section><section><h5>Visszatérési érték</h5><p>Egy kétdimenziós `num_kinem` objektum. Az objektumban beállításra kerül a `t`, `r`, `v`, `a`, `delta_r`, `pathlength`, `a_t`, `a_cp`, `Rinv` és `acc` attribútum.</p></section><section><h5>Fizikai jelentés</h5><p>A GPS-nyomvonalat síkbeli mozgásként értelmezi. A földrajzi koordinátákból helyvektort készít, majd ebből numerikusan kiszámítja a sebességet, gyorsulást, megtett utat, valamint a tangenciális és centripetális gyorsulási adatokat.</p></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-num_kinem_smooth_r" data-search="num_kinem_smooth_r a bemeneti num_kinem objektum r adatait simítja, a megadott sűrűségű rácsra újraszámolja 
+és kiszámolja a sebességet, gyorsulást, útvonalhosszat, ...
+
+fizikai jelentés:
+    zajos helyadatokból simított pályát készít simító spline segítségével.
+    a simított helyfüggvény deriváltjaiból sebességet és gyorsulást számít,
+    ami különösen gps-adatoknál hasznos, mert a nyers numerikus deriválás
+    erősen felerősítheti a mérési zajt.
+
+paraméterek:
+    numkin0: az eredeti `num_kinem` objektum, amelynek `t` és `r` adatai a
+        simítás bemenetét adják. ha `err_report=true`, akkor az `acc`
+        attribútumot is használja.
+    dt_new: az új, egyenletes időrács időlépése.
+    lam: a simító spline simítási paramétere. `none` esetén a scipy
+        alapértelmezett választását használja. nagyobb érték általában
+        simább, de kevésbé pontosan illeszkedő görbét ad.
+    err_report: ha igaz, kiírja a gps pontossági becslés és a simított
+        pálya eredeti pontoktól vett eltérésének rms és maximum értékét.
+
+visszatérési érték:
+    egy új `num_kinem` objektum, amely a simított és újramintavételezett
+    `r`, `v`, `a`, `delta_r`, `pathlength`, `a_t`, `a_cp` és `rinv`
+    attribútumokat tartalmazza. zajos kinematikai pályaadatokat simít és új num_kinem objektumot készít.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">num_kinem_smooth_r</span>
+          </div>
+          <code class="signature">num_kinem_smooth_r(numkin0, dt_new, lam=None, err_report=False) -&gt; rendes_fizinfo_docs_source.num_kinem</code>
+        </div>
+        <div class="summary-text">Zajos kinematikai pályaadatokat simít és új num_kinem objektumot készít.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>A bemeneti num_kinem objektum r adatait simítja, a megadott sűrűségű rácsra újraszámolja és kiszámolja a sebességet, gyorsulást, útvonalhosszat, ...</p><p>Fizikai jelentés: Zajos helyadatokból simított pályát készít simító spline segítségével. A simított helyfüggvény deriváltjaiból sebességet és gyorsulást számít, ami különösen GPS-adatoknál hasznos, mert a nyers numerikus deriválás erősen felerősítheti a mérési zajt.</p><p>Paraméterek: numkin0: Az eredeti `num_kinem` objektum, amelynek `t` és `r` adatai a simítás bemenetét adják. Ha `err_report=True`, akkor az `acc` attribútumot is használja. dt_new: Az új, egyenletes időrács időlépése. lam: A simító spline simítási paramétere. `None` esetén a SciPy alapértelmezett választását használja. Nagyobb érték általában simább, de kevésbé pontosan illeszkedő görbét ad. err_report: Ha igaz, kiírja a GPS pontossági becslés és a simított pálya eredeti pontoktól vett eltérésének RMS és maximum értékét.</p><p>Visszatérési érték: Egy új `num_kinem` objektum, amely a simított és újramintavételezett `r`, `v`, `a`, `delta_r`, `pathlength`, `a_t`, `a_cp` és `Rinv` attribútumokat tartalmazza.</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>numkin0: Az eredeti `num_kinem` objektum, amelynek `t` és `r` adatai a</li><li>simítás bemenetét adják. Ha `err_report=True`, akkor az `acc`</li><li>attribútumot is használja.</li><li>dt_new: Az új, egyenletes időrács időlépése.</li><li>lam: A simító spline simítási paramétere. `None` esetén a SciPy</li><li>alapértelmezett választását használja. Nagyobb érték általában</li><li>simább, de kevésbé pontosan illeszkedő görbét ad.</li><li>err_report: Ha igaz, kiírja a GPS pontossági becslés és a simított</li><li>pálya eredeti pontoktól vett eltérésének RMS és maximum értékét.</li></ul></section><section><h5>Visszatérési érték</h5><p>Egy új `num_kinem` objektum, amely a simított és újramintavételezett `r`, `v`, `a`, `delta_r`, `pathlength`, `a_t`, `a_cp` és `Rinv` attribútumokat tartalmazza.</p></section><section><h5>Fizikai jelentés</h5><p>Zajos helyadatokból simított pályát készít simító spline segítségével. A simított helyfüggvény deriváltjaiból sebességet és gyorsulást számít, ami különösen GPS-adatoknál hasznos, mert a nyers numerikus deriválás erősen felerősítheti a mérési zajt.</p></section>
+      </div>
+    </details>
+    
+            </section>
+            
+      
+            <section class="section-panel" id="section-modellek">
+              <header class="section-header">
+                <div class="eyebrow"><span class="badge badge-group">szekció</span> <span class="badge badge-group">2 elem</span></div>
+                <h2>Kész fizikai modellek</h2>
+                <p>Előre elkészített erő- és tömegfüggvény-generátorok tipikus dinamikai modellekhez.</p>
+              </header>
+              
+    <details class="api-item" id="fn-create_grav_közeg_talaj_F_m" data-search="create_grav_közeg_talaj_f_m visszaadja egy labda erő- és tömegfüggvényét gravitáció,
+közegellenállás és rugalmas talajtól való visszapattanás figyelembevételével.
+
+paraméterek:
+    m    : labda tömege [kg]
+    c    : közegellenállási együttható (c_d)
+    a    : labda homlokfelülete [m²]
+    rho  : közeg sűrűsége [kg/m³]
+    d    : rugalmas talajmodell merevségi együtthatója [n/m]
+          (talaj-reakcióerő: f_talaj = d * behatolás, ha y &lt;= 0)
+    f_f  : súrlódási erő nagysága a talajon [n]
+          (vízszintes irányban lassít, ha a labda érinti a talajt)
+    g    : gravitációs gyorsulás [m/s²] kész erő- és tömegfüggvényt ad labda típusú mozgásokhoz gravitációval, közegellenállással és talajmodellel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">create_grav_közeg_talaj_F_m</span>
+          </div>
+          <code class="signature">create_grav_közeg_talaj_F_m(m, C, A, rho, D, F_f, g=9.81)</code>
+        </div>
+        <div class="summary-text">Kész erő- és tömegfüggvényt ad labda típusú mozgásokhoz gravitációval, közegellenállással és talajmodellel.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Visszaadja egy labda erő- és tömegfüggvényét gravitáció, közegellenállás és rugalmas talajtól való visszapattanás figyelembevételével.</p><p>Paraméterek: m : labda tömege [kg] C : közegellenállási együttható (C_D) A : labda homlokfelülete [m²] rho : közeg sűrűsége [kg/m³] D : rugalmas talajmodell merevségi együtthatója [N/m] (talaj-reakcióerő: F_talaj = D * behatolás, ha y &lt;= 0) F_f : súrlódási erő nagysága a talajon [N] (vízszintes irányban lassít, ha a labda érinti a talajt) g : gravitációs gyorsulás [m/s²]</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>m    : labda tömege [kg]</li><li>C    : közegellenállási együttható (C_D)</li><li>A    : labda homlokfelülete [m²]</li><li>rho  : közeg sűrűsége [kg/m³]</li><li>D    : rugalmas talajmodell merevségi együtthatója [N/m]</li><li>(talaj-reakcióerő: F_talaj = D * behatolás, ha y &lt;= 0)</li><li>F_f  : súrlódási erő nagysága a talajon [N]</li><li>(vízszintes irányban lassít, ha a labda érinti a talajt)</li><li>g    : gravitációs gyorsulás [m/s²]</li></ul></section>
+      </div>
+    </details>
+    
+    <details class="api-item" id="fn-create_rocket_F_m" data-search="create_rocket_f_m visszaadja a rakéta erő- és tömegfüggvényét.
+
+paraméterek:
+    c                  : közegellenállási együttható (c_d)
+    a                  : rakéta homlokfelülete [m²]
+    rho                : levegő sűrűsége [kg/m³]
+    szaraz_tomeg       : rakéta tömege hajtóanyag nélkül [kg]
+    hajtoanyag_tomeg   : kezdeti hajtóanyag tömege [kg]
+    kiaramlasi_seb     : hajtóanyag kilépési sebessége (hatásos) [m/s]
+    tomegaram          : hajtóanyag fogyasztás [kg/s]
+    g                  : gravitációs gyorsulás [m/s²] kész erő- és tömegfüggvényt ad rakétamodellhez gravitációval, légellenállással és tolóerővel.">
+      <summary>
+        <div class="summary-head">
+          <div class="summary-title">
+            <span class="badge badge-function">függvény</span>
+            
+            <span class="item-name">create_rocket_F_m</span>
+          </div>
+          <code class="signature">create_rocket_F_m(C, A, rho, szaraz_tomeg, hajtoanyag_tomeg, kiaramlasi_seb, tomegaram, g=9.81)</code>
+        </div>
+        <div class="summary-text">Kész erő- és tömegfüggvényt ad rakétamodellhez gravitációval, légellenállással és tolóerővel.</div>
+      </summary>
+      <div class="item-body">
+        <section>
+          <h5>Rövid leírás</h5>
+          <p>Visszaadja a rakéta erő- és tömegfüggvényét.</p><p>Paraméterek: C : közegellenállási együttható (C_D) A : rakéta homlokfelülete [m²] rho : levegő sűrűsége [kg/m³] szaraz_tomeg : rakéta tömege hajtóanyag nélkül [kg] hajtoanyag_tomeg : kezdeti hajtóanyag tömege [kg] kiaramlasi_seb : hajtóanyag kilépési sebessége (hatásos) [m/s] tomegaram : hajtóanyag fogyasztás [kg/s] g : gravitációs gyorsulás [m/s²]</p>
+        </section>
+        <section><h5>Paraméterek</h5><ul><li>C                  : közegellenállási együttható (C_D)</li><li>A                  : rakéta homlokfelülete [m²]</li><li>rho                : levegő sűrűsége [kg/m³]</li><li>szaraz_tomeg       : rakéta tömege hajtóanyag nélkül [kg]</li><li>hajtoanyag_tomeg   : kezdeti hajtóanyag tömege [kg]</li><li>kiaramlasi_seb     : hajtóanyag kilépési sebessége (hatásos) [m/s]</li><li>tomegaram          : hajtóanyag fogyasztás [kg/s]</li><li>g                  : gravitációs gyorsulás [m/s²]</li></ul></section>
+      </div>
+    </details>
+    
+            </section>
+            
+    </main>
+  </div>
+
+  <script>
+    const search = document.getElementById('doc-search');
+    const items = Array.from(document.querySelectorAll('.api-item'));
+    const sections = Array.from(document.querySelectorAll('.section-panel, .class-panel, .method-group'));
+
+    function updateSearch() {
+      const query = search.value.trim().toLowerCase();
+
+      items.forEach((item) => {
+        const haystack = item.dataset.search || '';
+        const visible = !query || haystack.includes(query);
+        item.classList.toggle('hidden-by-search', !visible);
+      });
+
+      sections.forEach((section) => {
+        const visibleItems = section.querySelectorAll('.api-item:not(.hidden-by-search)');
+        section.classList.toggle('hidden-by-search', visibleItems.length === 0);
+      });
+    }
+
+    search.addEventListener('input', updateSearch);
+  </script>
+</body>
+</html>
